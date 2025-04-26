@@ -1,0 +1,26 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "pong_mejorado.cpp",
+                "-I${workspaceFolder}/include",
+                "-IC:/SFML-2.5.1/include",
+                "-LC:/SFML-2.5.1/lib",
+                "-lsfml-graphics-d",
+                "-lsfml-window-d",
+                "-lsfml-system-d",
+                "-lsfml-audio-d",
+                "-o",
+                "PongMejorado.exe"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

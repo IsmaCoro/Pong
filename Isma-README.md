@@ -1,54 +1,82 @@
-![This is me](https://github.com/DitecnoDigital/JuegoPongC-/blob/main/PortadaPong.png)
+🔹 Pong Game en C++ con SFML
 
-# Juego "Pong"
+📋 Requerimientos del Sistema
 
-Tutorial de como realizar "Pong" en C++ usando librería SFML donde puedes ver el paso a paso en:
+✅ Sistema operativo: Windows 64 bits
 
-### ⭐️Youtube:
+✅ Compilador: g++ (MinGW.org GCC-6.3.0-1) 6.3.0
 
-#### 🕹 Pong
-[![](https://img.shields.io/badge/YouTube-Pong-red)](https://www.youtube.com/watch?v=HvYVP6MLuR0)
- 
-### ⭐️ Otros tutoriales que te puede interesar:
+✅ Biblioteca gráfica: SFML 2.5.1 - GCC 6.1.0 MinGW (32-bit)
 
-#### 🕹 Buscaminas
-[![](https://img.shields.io/badge/YouTube-Buscaminas-red)](https://www.youtube.com/watch?v=_NPT708qXpM&t=1187s)
- 
-#### 🕹 Juego del Ahorcado
-[![](https://img.shields.io/badge/YouTube-Ahorcado-red)](https://www.youtube.com/watch?v=smFGH95Xe1s)
- 
- 
-#### 🕹 Quiz, Juego de Preguntas
-[![](https://img.shields.io/badge/YouTube-Quiz-red)](https://www.youtube.com/watch?v=EXs_MCt5G64)
-   
- 
-#### 🕹 Cuartro en Linea
-[![](https://img.shields.io/badge/YouTube-CuatroEnLinea-red)](https://www.youtube.com/watch?v=T3M5dw_uvjs)
-   
-#### 🕹 Arkanoid
- [![](https://img.shields.io/badge/YouTube-Arkanoid-red)](https://www.youtube.com/watch?v=Q-J5JZHkghg&t=1389s)
+✅ Editor sugerido: Visual Studio Code (o cualquier otro compatible con C++)
 
-### Tutorial para  instalar MinGW para usar g++ en la consola:
+✅ Carpeta de recursos: images/ con los archivos:
 
-[![](https://img.shields.io/badge/DitecnoMakers-MinGW-blue)](https://ditecnomakers.com/uso-de-g-para-compilar-programas-en-c/)
+ball.png
 
+paddle.png
 
-### Tutorial de como usar g++ en la consola: 
-   
- [![](https://img.shields.io/badge/DitecnoMakers-g++-blue)](https://ditecnomakers.com/utilizar-g-para-compilar-por-consola/)  
+pixelart.ttf
 
+⚙️ Instalación del Compilador MinGW
 
-### Realizado por:
-                Juan José Läderach con fines educativos el 25 de Julio del 2022.
-                
-El código Fuente se encuentra en este repositorio, archivo con extención cpp. Esta realizado bajo la plataforma linux. 
+Descargar el instalador desde SourceForge:👉 https://sourceforge.net/projects/mingw/files/MinGW/Base/gcc/Version6/gcc-6.3.0
 
+Instalar los siguientes paquetes usando el instalador (mingw-get-setup.exe):
 
-## Puedes seguirme en:
+mingw32-base
 
-[![Twitter Follow](https://img.shields.io/twitter/follow/ditecnodigital?style=social)](https://twitter.com/DitecnoDigital)
- [![YouTube Channel Subscribers](https://img.shields.io/youtube/channel/subscribers/UCCdly91ChaaL8brV5sRfGnQ?style=social)](https://www.youtube.com/@ditecnodigital?sub_confirmation=1)
+mingw32-gcc-g++
 
-#### Puedes apoyar mi trabajo haciendo "☆ Star" en el repo o nominarme a "GitHub Star". ¡Gracias!
+Agregar el compilador a la variable de entorno:
 
-[![GitHub Star](https://img.shields.io/badge/GitHub-Nominar_a_star-yellow?style=for-the-badge&logo=github&logoColor=white&labelColor=101010)](https://stars.github.com/nominate/)
+C:\MinGW\bin
+
+Validar instalación en la terminal (CMD o PowerShell):
+
+g++ --version
+
+✔️ Debería mostrar: g++ (MinGW.org GCC-6.3.0-1) 6.3.0
+
+📦 Instalación de SFML
+
+Descargar SFML 2.5.1 para GCC 6.1.0 MinGW 32-bit:👉 https://www.sfml-dev.org/files/SFML-2.5.1-windows-gcc-6.1.0-mingw-32-bit.zip
+
+Extraer la carpeta y colocarla donde prefieras, por ejemplo:
+
+C:\SFML
+
+Agregar a la variable de entorno:
+
+C:\SFML\bin
+
+Al compilar con g++, incluir y linkear SFML así:
+
+g++ pong.cpp -IC:\SFML\include -LC:\SFML\lib -lsfml-graphics -lsfml-window -lsfml-system -o PongGame.exe
+
+🖼️ Recursos del Juego
+
+Todos los recursos deben estar en una carpeta llamada images dentro del mismo directorio del .exe.
+
+📁 Proyecto
+🏻 PongGame.exe
+🏻pong.cpp
+🏻images
+   📷 ball.png
+   📷 paddle.png
+   📝 pixelart.ttf
+
+En el código, las rutas se verán así:
+
+bolaT.loadFromFile("images/ball.png");
+paletaT.loadFromFile("images/paddle.png");
+fuente.loadFromFile("images/pixelart.ttf");
+
+✅ Validación final
+
+Verifica que puedes ejecutar:
+
+PongGame.exe
+
+Si ves errores como “Unable to open file”, asegúrate de que la carpeta images/ esté en el mismo nivel que el ejecutable y contenga los recursos correctos.
+

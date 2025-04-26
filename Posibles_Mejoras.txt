@@ -1,0 +1,117 @@
+# Plan de Mejoras para el Juego de Pong en C++
+¡Perfecto! Vamos a detallar todas las mejoras que podemos implementar en tu juego de Pong, incluyendo el nuevo modo IA vs IA que has solicitado.
+
+## Power-ups Recomendados
+Para hacer el juego más dinámico y divertido:
+
+1. Paleta Más Grande : Aumenta temporalmente el tamaño de la paleta del jugador
+2. Paleta Más Pequeña : Reduce temporalmente el tamaño de la paleta del oponente
+3. Pelota Lenta : Reduce la velocidad de la pelota por unos segundos
+4. Doble Pelota : Añade una segunda pelota al juego
+5. Barrera : Crea una barrera temporal en el centro que desvía la pelota
+6. Velocidad Invertida : Invierte los controles del oponente temporalmente
+## Estructura del Menú Principal Mejorado
+Un menú principal completo con todas las opciones:
+
+```plaintext
+PONG MEJORADO
+--------------
+1. Un Jugador vs IA
+   - Nivel Fácil
+   - Nivel Medio
+   - Nivel Difícil
+   - Nivel Imposible
+2. Dos Jugadores
+3. IA vs IA
+   - IA 1: [Fácil/Medio/Difícil/Imposible]
+   - IA 2: [Fácil/Medio/Difícil/Imposible]
+4. Opciones
+   - Duración: 3 minutos
+   - Puntos para ganar: 7
+   - Velocidad inicial
+   - Activar/Desactivar Power-ups
+5. Salir
+ ```
+
+## Niveles de Dificultad de la IA
+Para implementar los diferentes niveles de dificultad de la IA:
+
+- Fácil :
+  
+  - La IA se mueve lentamente (60% de la velocidad máxima)
+  - Tiene un 40% de probabilidad de cometer un error intencional
+  - Reacciona con retraso a los cambios de dirección de la pelota
+- Medio :
+  
+  - La IA se mueve a velocidad moderada (75% de la velocidad máxima)
+  - Tiene un 20% de probabilidad de cometer un error
+  - Reacciona con un pequeño retraso a los cambios de dirección
+- Difícil :
+  
+  - La IA se mueve rápidamente (90% de la velocidad máxima)
+  - Tiene un 5% de probabilidad de cometer un error
+  - Reacciona casi instantáneamente a los cambios de dirección
+- Imposible :
+  
+  - La IA se mueve a velocidad máxima (100%)
+  - Nunca comete errores
+  - Predice perfectamente la trayectoria de la pelota
+  - Siempre posiciona la paleta en el punto óptimo
+## Modo IA vs IA
+En este modo, el jugador puede:
+
+1. Seleccionar el nivel de dificultad para cada IA independientemente
+2. Observar el partido entre las dos IAs
+3. Configurar la duración o puntuación máxima
+4. Pausar, reanudar o reiniciar el partido en cualquier momento
+Este modo puede ser interesante para:
+
+- Ver cómo se comportan diferentes niveles de IA entre sí
+- Estudiar estrategias de juego
+- Simplemente disfrutar de un partido automático
+## Mecánicas Adicionales
+1. Aceleración de la Pelota :
+   
+   - La pelota aumenta su velocidad un 5% después de cada rebote
+   - Se puede establecer una velocidad máxima para evitar que sea imposible de jugar
+2. Temporizador :
+   
+   - Contador regresivo de 3 minutos
+   - Cuando el tiempo se acaba, gana el jugador con más puntos
+3. Sistema de Puntuación :
+   
+   - El primero en llegar a 7 puntos gana
+   - Se puede configurar para diferentes cantidades (5, 7, 10, 15)
+4. Efectos Visuales y Sonoros :
+   
+   - Efectos cuando la pelota golpea las paletas
+   - Efectos especiales cuando se activa un power-up
+   - Sonidos diferentes para cada tipo de colisión
+   - Música de fondo que cambia según la intensidad del juego
+## Implementación Técnica
+Para implementar estas mejoras, necesitarías:
+
+1. Estructura de Clases :
+   
+   - Game : Clase principal que gestiona el juego
+   - Menu : Gestiona el menú principal y las opciones
+   - Player : Representa a un jugador (humano o IA)
+   - Ball : Representa la pelota
+   - PowerUp : Clase base para los diferentes power-ups
+   - Timer : Gestiona el tiempo de juego
+2. Estados del Juego :
+   
+   - MENU : Muestra el menú principal
+   - PLAYING : El juego está en curso
+   - PAUSED : El juego está pausado
+   - GAME_OVER : El juego ha terminado
+3. Sistema de IA :
+   
+   - Implementar diferentes algoritmos según el nivel de dificultad
+   - Para el nivel "Imposible", calcular exactamente dónde va a rebotar la pelota
+   - Para niveles más bajos, introducir errores aleatorios y retrasos
+4. Sistema de Power-ups :
+   
+   - Aparición aleatoria en el campo de juego
+   - Duración limitada de los efectos
+   - Efectos visuales para indicar qué power-up está activo
