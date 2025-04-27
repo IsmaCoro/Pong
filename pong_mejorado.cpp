@@ -272,42 +272,49 @@ public:
 
         // Asegurar que la paleta no salga de la pantalla
         Vector2f pos = sprite.getPosition();
-        if (pos.y < 0)
-            sprite.setPosition(pos.x, 0);
-        if (pos.y > 500)
-            sprite.setPosition(pos.x, 500);
+        if (pos.y < sprite.getGlobalBounds().height / 2)
+            sprite.setPosition(pos.x, sprite.getGlobalBounds().height / 2);
+        if (pos.y > 500 - sprite.getGlobalBounds().height / 2)
+            sprite.setPosition(pos.x, 500 - sprite.getGlobalBounds().height / 2);
     }
 
-    void moveUp()
+    void move(float offsetY)
     {
-        float direction = invertedControls ? 1.0f : -1.0f;
-        sprite.move(0, direction * speed);
+        // Mueve la paleta
+        sprite.move(0, offsetY);
 
-        // Asegurar que la paleta no salga de la pantalla
+        // Obtener la posición actual
         Vector2f pos = sprite.getPosition();
-        if (pos.y < 0)
-            sprite.setPosition(pos.x, 0);
-    }
 
-    void moveDown()
-    {
-        float direction = invertedControls ? -1.0f : 1.0f;
-        sprite.move(0, direction * speed);
-
-        // Asegurar que la paleta no salga de la pantalla
-        Vector2f pos = sprite.getPosition();
-        if (pos.y > 500)
-            sprite.setPosition(pos.x, 500);
+        // Verificar y ajustar si la paleta se sale de los límites
+        if (pos.y < sprite.getGlobalBounds().height / 2)
+        {
+            sprite.setPosition(pos.x, sprite.getGlobalBounds().height / 2);
+        }
+        else if (pos.y > 500 - sprite.getGlobalBounds().height / 2)
+        {
+            sprite.setPosition(pos.x, 500 - sprite.getGlobalBounds().height / 2);
+        }
     }
 
     void setSize(float scaleFactor)
     {
-        sprite.setScale(sprite.getScale().x, originalScale * scaleFactor);
+        if (sprite.getRotation() == 90 || sprite.getRotation() == -90)
+        {
+            // Para paletas rotadas 90 o -90 grados, ajustamos la escala X
+            sprite.setScale(originalScale * scaleFactor, sprite.getScale().y);
+        }
+        else
+        {
+            // Para paletas sin rotación, ajustamos la escala Y
+            sprite.setScale(sprite.getScale().x, originalScale * scaleFactor);
+        }
     }
 
     void resetSize()
     {
-        sprite.setScale(sprite.getScale().x, originalScale);
+        // Restaurar la escala original en ambos ejes
+        sprite.setScale(originalScale, originalScale);
     }
 
     void setInvertedControls(bool inverted)
@@ -326,6 +333,7 @@ public:
     AILevel getAILevel() { return aiLevel; }
     void setIsAI(bool ai) { isAI = ai; }
     bool getIsAI() { return isAI; }
+    float getSpeed() { return speed; } // Añadir este método
 };
 
 // Clase para los power-ups
@@ -467,8 +475,8 @@ public:
         options.push_back(title);
 
         // Opciones principales
-        addOption("1. Un Jugador vs IA", 200);
-        addOption("2. Dos Jugadores", 250);
+        addOption("1. Facil", 200);
+        addOption("2. Dificil", 250);
         addOption("3. IA vs IA", 300);
         addOption("4. Opciones", 350);
         addOption("5. Salir", 400);
@@ -550,7 +558,7 @@ private:
     // Elementos del juego
     vector<Ball> balls;
     Paddle leftPaddle = Paddle(paddleTexture, true, false, EASY);
-    Paddle rightPaddle = Paddle(paddleTexture, false, true, menu->getAILevel1());
+    Paddle rightPaddle = Paddle(paddleTexture, false, true, EASY); // Inicializar con un valor por defecto
     vector<PowerUp> powerUps;
 
     // Interfaz
@@ -592,7 +600,7 @@ public:
         {
             cout << "Error al cargar Fuente Pixel Art" << endl;
         }
-        
+
         // Inicializar las paletas DESPUÉS de cargar las texturas
         leftPaddle = Paddle(paddleTexture, true, false, EASY);
         rightPaddle = Paddle(paddleTexture, false, true, menu->getAILevel1());
@@ -613,6 +621,9 @@ public:
         // Crear el menú
         menu = new Menu(font);
 
+        // Actualizar el nivel de AI de la paleta derecha
+        rightPaddle = Paddle(paddleTexture, false, true, menu->getAILevel1());
+
         // Inicializar la pelota
         balls.push_back(Ball(ballTexture));
 
@@ -629,10 +640,12 @@ public:
         pauseText.setCharacterSize(50);
         pauseText.setString("PAUSA");
         pauseText.setPosition(350, 200);
+        pauseText.setFillColor(Color::White);
 
         gameOverText.setFont(font);
         gameOverText.setCharacterSize(50);
         gameOverText.setPosition(300, 200);
+        gameOverText.setFillColor(Color::White);
 
         // Inicializar la lógica del juego
         leftScore = 0;
@@ -736,12 +749,8 @@ private:
             switch (option)
             {
             case 0: // Un Jugador vs IA
-                gameMode = PLAYER_VS_AI;
-                leftPaddle.setIsAI(false);
-                rightPaddle.setIsAI(true);
-                rightPaddle.setAILevel(menu->getAILevel1());
-                resetGame();
-                state = PLAYING;
+                // En lugar de iniciar el juego directamente, mostrar submenú de dificultad
+                showAIDifficultyMenu();
                 break;
             case 1: // Dos Jugadores
                 gameMode = PLAYER_VS_PLAYER;
@@ -780,63 +789,13 @@ private:
             // Comprobar si el tiempo se ha acabado
             if (timer->isTimeUp())
             {
-                gameOverText.setString(leftScore > rightScore ? "¡JUGADOR 1 GANA!" : (rightScore > leftScore ? "¡JUGADOR 2 GANA!" : "¡EMPATE!"));
+                gameOverText.setString(leftScore > rightScore ? "JUGADOR 1 GANA!" : (rightScore > leftScore ? "JUGADOR 2 GANA!" : "EMPATE!"));
                 state = GAME_OVER;
                 return;
             }
 
             // Actualizar pelotas
-            for (auto &ball : balls)
-            {
-                if (!ball.isActive())
-                    continue;
-
-                ball.update();
-
-                // Comprobar colisiones con las paletas
-                if (rightPaddle.getSprite().getGlobalBounds().contains(ball.getPosition()))
-                {
-                    ball.reverseX();
-                    ball.accelerate();
-                }
-                else if (leftPaddle.getSprite().getGlobalBounds().contains(ball.getPosition()))
-                {
-                    ball.reverseX();
-                    ball.accelerate();
-                }
-
-                // Comprobar si la pelota sale por los lados
-                if (ball.getPosition().x > 850)
-                {
-                    leftScore++;
-                    updateScoreDisplay();
-                    ball.reset();
-
-                    if (leftScore >= maxScore)
-                    {
-                        gameOverText.setString("¡JUGADOR 1 GANA!");
-                        state = GAME_OVER;
-                    }
-                }
-                else if (ball.getPosition().x < 0)
-                {
-                    rightScore++;
-                    updateScoreDisplay();
-                    ball.reset();
-
-                    if (rightScore >= maxScore)
-                    {
-                        gameOverText.setString("¡JUGADOR 2 GANA!");
-                        state = GAME_OVER;
-                    }
-                }
-
-                // Comprobar colisiones con los bordes superior e inferior
-                if (ball.getPosition().y > 500 || ball.getPosition().y < 0)
-                {
-                    ball.reverseY();
-                }
-            }
+            updateBalls();
 
             // Actualizar paletas
             updatePaddles();
@@ -853,6 +812,89 @@ private:
         }
     }
 
+    void updateBalls()
+    {
+        bool goalScored = false;
+
+        // Actualizar posición de las pelotas
+        for (auto &ball : balls)
+        {
+            if (!ball.isActive())
+                continue;
+
+            ball.update();
+
+            // Comprobar colisiones con las paletas
+            if (rightPaddle.getSprite().getGlobalBounds().contains(ball.getPosition()))
+            {
+                ball.reverseX();
+                ball.accelerate();
+            }
+            else if (leftPaddle.getSprite().getGlobalBounds().contains(ball.getPosition()))
+            {
+                ball.reverseX();
+                ball.accelerate();
+            }
+
+            // Comprobar colisiones con los bordes superior e inferior
+            Vector2f pos = ball.getPosition();
+            if (pos.y < 0 || pos.y > 500)
+            {
+                ball.reverseY();
+            }
+
+            // Comprobar si ha salido por los lados (gol)
+            if (pos.x < 0)
+            {
+                // Gol para el jugador derecho
+                rightScore++;
+                updateScoreDisplay();
+                goalScored = true;
+
+                // Comprobar victoria
+                if (rightScore >= maxScore)
+                {
+                    gameOverText.setString("JUGADOR 2 GANA!");
+                    state = GAME_OVER;
+                }
+
+                break; // Salir del bucle para evitar más procesamiento
+            }
+            else if (pos.x > 850)
+            {
+                // Gol para el jugador izquierdo
+                leftScore++;
+                updateScoreDisplay();
+                goalScored = true;
+
+                // Comprobar victoria
+                if (leftScore >= maxScore)
+                {
+                    gameOverText.setString("JUGADOR 1 GANA!");
+                    state = GAME_OVER;
+                }
+
+                break; // Salir del bucle para evitar más procesamiento
+            }
+        }
+
+        // Si se anotó un gol, reiniciar todas las pelotas
+        if (goalScored)
+        {
+            balls.clear();
+            Ball newBall(ballTexture);
+            newBall.reset(); // Asegurarse de que la pelota tenga una velocidad inicial
+            balls.push_back(newBall);
+            return;
+        }
+
+        // Eliminar pelotas inactivas
+        balls.erase(
+            remove_if(balls.begin(), balls.end(), [](const Ball &b)
+                      { return !b.isActive(); }),
+            balls.end());
+    }
+
     void updatePaddles()
     {
         // Controlar paleta izquierda (jugador 1 o IA)
@@ -860,11 +902,11 @@ private:
         {
             if (Keyboard::isKeyPressed(Keyboard::W) && leftPaddle.getSprite().getPosition().y > 0)
             {
-                leftPaddle.moveUp();
+                leftPaddle.move(-leftPaddle.getSpeed()); // Move up
             }
             if (Keyboard::isKeyPressed(Keyboard::S) && leftPaddle.getSprite().getPosition().y < 500)
             {
-                leftPaddle.moveDown();
+                leftPaddle.move(leftPaddle.getSpeed()); // Move down
             }
         }
         else
@@ -877,11 +919,11 @@ private:
         {
             if (Keyboard::isKeyPressed(Keyboard::Up) && rightPaddle.getSprite().getPosition().y > 0)
             {
-                rightPaddle.moveUp();
+                rightPaddle.move(-rightPaddle.getSpeed()); // Move up
             }
             if (Keyboard::isKeyPressed(Keyboard::Down) && rightPaddle.getSprite().getPosition().y < 500)
             {
-                rightPaddle.moveDown();
+                rightPaddle.move(rightPaddle.getSpeed()); // Move down
             }
         }
         else
@@ -1046,31 +1088,31 @@ private:
         // Limpiar pelotas y power-ups
         balls.clear();
         powerUps.clear();
-        
+
         // Crear una nueva pelota con velocidad inicial
         balls.push_back(Ball(ballTexture));
-        
+
         // Asegurarse de que la pelota tenga una velocidad inicial
         balls[0].reset();
-        
+
         // Reiniciar puntuaciones
         leftScore = 0;
         rightScore = 0;
         updateScoreDisplay();
-        
+
         // Reiniciar temporizador
         timer->reset();
-        
+
         // Reiniciar paletas
         leftPaddle.resetSize();
         rightPaddle.resetSize();
         leftPaddle.setInvertedControls(false);
         rightPaddle.setInvertedControls(false);
-        
+
         // Aplicar configuraciones del menú
         maxScore = menu->getMaxScore();
         powerUpsEnabled = menu->arePowerUpsEnabled();
-        
+
         // Reiniciar temporizador de power-ups
         powerUpSpawnTimer.restart();
     }
@@ -1088,11 +1130,11 @@ private:
         {
             if (Keyboard::isKeyPressed(Keyboard::W))
             {
-                leftPaddle.moveUp();
+                leftPaddle.move(-leftPaddle.getSpeed()); // Move up
             }
             if (Keyboard::isKeyPressed(Keyboard::S))
             {
-                leftPaddle.moveDown();
+                leftPaddle.move(leftPaddle.getSpeed()); // Move down
             }
         }
 
@@ -1101,15 +1143,15 @@ private:
         {
             if (Keyboard::isKeyPressed(Keyboard::Up))
             {
-                rightPaddle.moveUp();
+                rightPaddle.move(-rightPaddle.getSpeed()); // Move up
             }
             if (Keyboard::isKeyPressed(Keyboard::Down))
             {
-                rightPaddle.moveDown();
+                rightPaddle.move(rightPaddle.getSpeed()); // Move down
             }
         }
     }
-    
+
     void showOptionsMenu()
     {
         // Crear un menú de opciones simple
@@ -1121,8 +1163,7 @@ private:
             "Duración partida: " + to_string(menu->getGameDuration()) + " min",
             "Puntuación máxima: " + to_string(menu->getMaxScore()),
             "Power-Ups: " + string(menu->arePowerUpsEnabled() ? "Activados" : "Desactivados"),
-            "Volver"
-        };
+            "Volver"};
 
         while (optionsMenuOpen && window.isOpen())
         {
@@ -1229,13 +1270,13 @@ private:
             {
                 Text optionText(options[i], font, 30);
                 optionText.setPosition(250, 150 + i * 50);
-                
+
                 // Resaltar opción seleccionada
                 if (i == selectedOption)
                     optionText.setFillColor(Color::Yellow);
                 else
                     optionText.setFillColor(Color::White);
-                    
+
                 window.draw(optionText);
             }
 
@@ -1269,6 +1310,95 @@ private:
                     ++it;
                 }
             }
+        }
+    }
+
+    // Método para mostrar el menú de dificultad de la IA
+    void showAIDifficultyMenu()
+    {
+        // Crear un menú temporal para la selección de dificultad
+        RenderWindow difficultyWindow(VideoMode(400, 300), "Seleccionar Dificultad");
+        difficultyWindow.setFramerateLimit(60);
+
+        // Opciones de dificultad
+        vector<Text> options;
+        vector<string> difficultyNames = {"FÁCIL", "MEDIA", "DIFÍCIL", "IMPOSIBLE"};
+        vector<AILevel> difficultyLevels = {EASY, MEDIUM, HARD, IMPOSSIBLE};
+
+        int selectedOption = 0;
+
+        // Crear las opciones de texto
+        for (int i = 0; i < 4; i++)
+        {
+            Text option(difficultyNames[i], font, 30);
+            option.setPosition(150, 80 + i * 50);
+            if (i == selectedOption)
+            {
+                option.setFillColor(Color::Yellow);
+            }
+            else
+            {
+                option.setFillColor(Color::White);
+            }
+            options.push_back(option);
+        }
+
+        // Título
+        Text title("SELECCIONA DIFICULTAD", font, 24);
+        title.setPosition(80, 30);
+
+        // Loop principal del menú de dificultad
+        while (difficultyWindow.isOpen())
+        {
+            Event event;
+            while (difficultyWindow.pollEvent(event))
+            {
+                if (event.type == Event::Closed)
+                {
+                    difficultyWindow.close();
+                }
+
+                if (event.type == Event::KeyPressed)
+                {
+                    if (event.key.code == Keyboard::Up)
+                    {
+                        options[selectedOption].setFillColor(Color::White);
+                        selectedOption = (selectedOption - 1 + 4) % 4;
+                        options[selectedOption].setFillColor(Color::Yellow);
+                    }
+                    else if (event.key.code == Keyboard::Down)
+                    {
+                        options[selectedOption].setFillColor(Color::White);
+                        selectedOption = (selectedOption + 1) % 4;
+                        options[selectedOption].setFillColor(Color::Yellow);
+                    }
+                    else if (event.key.code == Keyboard::Return)
+                    {
+                        // Configurar el juego con la dificultad seleccionada
+                        gameMode = PLAYER_VS_AI;
+                        leftPaddle.setIsAI(false);
+                        rightPaddle.setIsAI(true);
+                        rightPaddle.setAILevel(difficultyLevels[selectedOption]);
+                        menu->setAILevel1(difficultyLevels[selectedOption]); // Guardar la selección
+                        resetGame();
+                        state = PLAYING;
+                        difficultyWindow.close();
+                    }
+                    else if (event.key.code == Keyboard::Escape)
+                    {
+                        difficultyWindow.close();
+                    }
+                }
+            }
+
+            // Dibujar
+            difficultyWindow.clear(Color(0, 0, 0));
+            difficultyWindow.draw(title);
+            for (const auto &option : options)
+            {
+                difficultyWindow.draw(option);
+            }
+            difficultyWindow.display();
         }
     }
 

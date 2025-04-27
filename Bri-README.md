@@ -36,21 +36,7 @@ COMANDO PARA VER QUIEN HA HECHO MÁS COMMITS (PONGANSE A CHAMBEAR)
 
     1. git shortlog -s -n --all
 
+Generar nuevo .exe para hacer las pruebas (En el CMD o Terminal en la carpeta Pong)
+    g++ pong_mejorado.cpp -IC:/SFML-2.5.1/include -LC:/SFML-2.5.1/lib -lsfml-graphics-d -lsfml-window-d -lsfml-system-d -lsfml-audio-d -o PongMejorado.exe
 
-Advertencias en el cmd
-DEBUG: Detalles de bajo nivel, útiles para depurar.
-INFO: Información general sobre el funcionamiento de la aplicación.
-WARNING: Advertencias sobre algo que podría ser problemático en el futuro.
-ERROR: Errores que impiden que una operación se realice correctamente.
-CRITICAL: Errores muy graves, típicamente hacen que la aplicación se detenga.
-
-INSTALAR 
-
-Para la BD y librerias
-pip install pymysql
-pip install python-dotenv
-pip install flask_sqlalchemy
-
-pip install Flask-Login
-pip install Flask-Mail
 
