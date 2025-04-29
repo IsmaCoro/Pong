@@ -607,9 +607,29 @@ public:
 
         // Cargar texturas de power-ups (esto es un placeholder, necesitarías crear estas imágenes)
         // En una implementación real, cargarías imágenes distintas para cada power-up
-        for (int i = 0; i < 6; i++)
+        if (!powerUpTextures[BIGGER_PADDLE].loadFromFile("c:\\Pong\\images\\doble.png"))
         {
-            powerUpTextures[i] = ballTexture; // Usar la textura de la bola como placeholder
+            cout << "Error al cargar textura para BIGGER_PADDLE" << endl;
+        }
+        if (!powerUpTextures[SMALLER_OPPONENT].loadFromFile("c:\\Pong\\images\\doble.png"))
+        {
+            cout << "Error al cargar textura para SMALLER_OPPONENT" << endl;
+        }
+        if (!powerUpTextures[SLOW_BALL].loadFromFile("c:\\Pong\\images\\doble.png"))
+        {
+            cout << "Error al cargar textura para SLOW_BALL" << endl;
+        }
+        if (!powerUpTextures[DOUBLE_BALL].loadFromFile("c:\\Pong\\images\\doble.png"))
+        {
+            cout << "Error al cargar textura para DOUBLE_BALL" << endl;
+        }
+        if (!powerUpTextures[BARRIER].loadFromFile("c:\\Pong\\images\\doble.png"))
+        {
+            cout << "Error al cargar textura para BARRIER" << endl;
+        }
+        if (!powerUpTextures[INVERT_CONTROLS].loadFromFile("c:\\Pong\\images\\doble.png"))
+        {
+            cout << "Error al cargar textura para INVERT_CONTROLS" << endl;
         }
 
         // Configurar la ventana
