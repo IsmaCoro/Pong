@@ -470,25 +470,32 @@ public:
         options.clear();
 
         // Título
-        Text title("PONG MEJORADO", font, 50);
-        title.setPosition(250, 50);
+        Text title("PONG 2.0", font, 50);
+
+        // Centrar el texto horizontalmente
+        FloatRect textBounds = title.getLocalBounds();
+        title.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top); // Centra horizontalmente el origen
+        title.setPosition(850 / 2.0f, 50);                                          // Posición centrada en X, Y fija
+
         options.push_back(title);
 
         // Opciones principales
-        addOption("1. Facil", 200);
-        addOption("2. Dificil", 250);
-        addOption("3. IA vs IA", 300);
-        addOption("4. Opciones", 350);
-        addOption("5. Salir", 400);
+        addOption("Player vs IA", 200);
+        addOption("2 Player", 250);
+        addOption("IA vs IA", 300);
+        addOption("Opciones", 350);
+        addOption("Salir", 400);
 
         // Resaltar la opción seleccionada
         options[selectedOption + 1].setFillColor(Color::Yellow);
     }
 
-    void addOption(const string &text, float y)
+    void addOption(const std::string &text, float y)
     {
         Text option(text, font, 30);
-        option.setPosition(300, y);
+        FloatRect bounds = option.getLocalBounds();
+        option.setOrigin(bounds.left + bounds.width / 2.0f, bounds.top); // Centra horizontalmente
+        option.setPosition(850 / 2.0f, y);                               // Centra en X
         options.push_back(option);
     }
 
@@ -580,7 +587,7 @@ private:
     bool powerUpsEnabled;
 
 public:
-    Game() : window(VideoMode(850, 500), "Pong Mejorado")
+    Game() : window(VideoMode(850, 500), "Pong 2.0")
     {
         // Inicializar el generador de números aleatorios
         srand(static_cast<unsigned int>(time(nullptr)));
@@ -1180,8 +1187,8 @@ private:
         vector<string> options = {
             "Dificultad IA 1: " + to_string(static_cast<int>(menu->getAILevel1())),
             "Dificultad IA 2: " + to_string(static_cast<int>(menu->getAILevel2())),
-            "Duración partida: " + to_string(menu->getGameDuration()) + " min",
-            "Puntuación máxima: " + to_string(menu->getMaxScore()),
+            "Duracion Partida: " + to_string(menu->getGameDuration()) + " min",
+            "Puntuacin Maxima: " + to_string(menu->getMaxScore()),
             "Power-Ups: " + string(menu->arePowerUpsEnabled() ? "Activados" : "Desactivados"),
             "Volver"};
 
@@ -1273,8 +1280,8 @@ private:
                     // Actualizar texto de opciones
                     options[0] = "Dificultad IA 1: " + to_string(static_cast<int>(menu->getAILevel1()));
                     options[1] = "Dificultad IA 2: " + to_string(static_cast<int>(menu->getAILevel2()));
-                    options[2] = "Duración partida: " + to_string(menu->getGameDuration()) + " min";
-                    options[3] = "Puntuación máxima: " + to_string(menu->getMaxScore());
+                    options[2] = "Duracion Partida: " + to_string(menu->getGameDuration()) + " min";
+                    options[3] = "Puntuacion Maxima: " + to_string(menu->getMaxScore());
                     options[4] = "Power-Ups: " + string(menu->arePowerUpsEnabled() ? "Activados" : "Desactivados");
                 }
             }
@@ -1283,13 +1290,18 @@ private:
             window.clear(Color(0, 0, 0));
 
             Text title("OPCIONES", font, 50);
-            title.setPosition(300, 50);
+            FloatRect titleBounds = title.getLocalBounds();
+            title.setOrigin(titleBounds.left + titleBounds.width / 2.0f, titleBounds.top);
+            title.setPosition(850 / 2.0f, 50);
+
             window.draw(title);
 
             for (size_t i = 0; i < options.size(); i++)
             {
                 Text optionText(options[i], font, 30);
-                optionText.setPosition(250, 150 + i * 50);
+                FloatRect optionBounds = optionText.getLocalBounds();
+                optionText.setOrigin(optionBounds.left + optionBounds.width / 2.0f, optionBounds.top);
+                optionText.setPosition(850 / 2.0f, 150 + i * 50);
 
                 // Resaltar opción seleccionada
                 if (i == selectedOption)
@@ -1337,7 +1349,7 @@ private:
     void showAIDifficultyMenu()
     {
         // Crear un menú temporal para la selección de dificultad
-        RenderWindow difficultyWindow(VideoMode(400, 300), "Seleccionar Dificultad");
+        RenderWindow difficultyWindow(VideoMode(600, 300), "Seleccionar Dificultad");
         difficultyWindow.setFramerateLimit(60);
 
         // Opciones de dificultad
