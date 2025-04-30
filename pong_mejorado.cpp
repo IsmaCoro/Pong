@@ -1342,7 +1342,7 @@ private:
 
         // Opciones de dificultad
         vector<Text> options;
-        vector<string> difficultyNames = {"FÁCIL", "MEDIA", "DIFÍCIL", "IMPOSIBLE"};
+        vector<string> difficultyNames = {"FACIL", "MEDIA", "DIFICIL", "IMPOSIBLE"};
         vector<AILevel> difficultyLevels = {EASY, MEDIUM, HARD, IMPOSSIBLE};
 
         int selectedOption = 0;

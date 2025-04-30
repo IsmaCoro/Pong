@@ -11,7 +11,7 @@ Para hacer el juego más dinámico y divertido:
 5. Barrera : Crea una barrera temporal en el centro que desvía la pelota
 6. Velocidad Invertida : Invierte los controles del oponente temporalmente
 7. Vision obstruida: el oponente no puede ver la pelota y la barra.
-8. Bloque del rival: por un corto periodo de tiempo el oponente no puede controlar su paleta
+8. Bloqueo del rival: por un corto periodo de tiempo el oponente no puede controlar su paleta
 9. Pelota fantasma: la pelota va a parpadear
 10. Apoyo: aparece una paleta extra enfrente que se controla sola
 11. Puntos dobles: Los puntos valen el doble
