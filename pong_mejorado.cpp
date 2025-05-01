@@ -40,7 +40,8 @@ enum PowerUpType
     SLOW_BALL,
     DOUBLE_BALL,
     BARRIER,
-    INVERT_CONTROLS
+    INVERT_CONTROLS,
+    FLASHING_BALL
 };
 
 // Clase para la pelota
@@ -52,9 +53,14 @@ private:
     float baseSpeed;
     float maxSpeed;
     bool active;
+    bool visible;
+    bool isFlashing;
+    Clock flashTimer;
+    float flashDuration; // segundos
+    float flashInterval; // segundos entre cambios de visibilida
 
 public:
-    Ball(Texture &texture)
+    Ball(Texture &texture) : isFlashing(false), flashDuration(3.0f), flashInterval(0.3f), visible(true)
     {
         sprite.setTexture(texture);
         sprite.setOrigin((float)texture.getSize().x / 2, (float)texture.getSize().y / 2);
@@ -63,6 +69,32 @@ public:
         baseSpeed = 3.0f;
         maxSpeed = 8.0f;
         active = true;
+    }
+
+    void startFlashing(float duration)
+    {
+        isFlashing = true;
+        flashDuration = duration;
+        flashTimer.restart();
+        setVisible(true); // Asegurarse que empiece visible
+    }
+
+    void updateFlashing()
+    {
+        if (isFlashing)
+        {
+            if (flashTimer.getElapsedTime().asSeconds() >= flashDuration)
+            {
+                isFlashing = false;
+                setVisible(true); // Al terminar el efecto, volver a ser visible
+            }
+            else
+            {
+                float elapsed = flashTimer.getElapsedTime().asSeconds();
+                bool shouldBeVisible = static_cast<int>(elapsed / flashInterval) % 2 == 0;
+                setVisible(shouldBeVisible);
+            }
+        }
     }
 
     void reset()
@@ -83,7 +115,7 @@ public:
     void update()
     {
         if (!active)
-            return;
+            return; // Solo si la pelota ya fue destruida del juego
         sprite.move(velocity);
     }
 
@@ -107,6 +139,9 @@ public:
 
     void reverseX() { velocity.x = -velocity.x; }
     void reverseY() { velocity.y = -velocity.y; }
+
+    void setVisible(bool state) { visible = state; }
+    bool isVisible() const { return visible; }
 
     // En la clase Ball (línea ~84)
     Sprite &getSprite() { return sprite; }
@@ -559,7 +594,7 @@ private:
     // Recursos
     Texture ballTexture;
     Texture paddleTexture;
-    Texture powerUpTextures[6]; // Una textura para cada tipo de power-up
+    Texture powerUpTextures[7]; // Una textura para cada tipo de power-up
     Font font;
 
     // Elementos del juego
@@ -614,11 +649,11 @@ public:
 
         // Cargar texturas de power-ups (esto es un placeholder, necesitarías crear estas imágenes)
         // En una implementación real, cargarías imágenes distintas para cada power-up
-        if (!powerUpTextures[BIGGER_PADDLE].loadFromFile("c:\\Pong\\images\\doble.png"))
+        if (!powerUpTextures[BIGGER_PADDLE].loadFromFile("c:\\Pong\\imagesBri\\aumentoTabla.png"))
         {
             cout << "Error al cargar textura para BIGGER_PADDLE" << endl;
         }
-        if (!powerUpTextures[SMALLER_OPPONENT].loadFromFile("c:\\Pong\\images\\doble.png"))
+        if (!powerUpTextures[SMALLER_OPPONENT].loadFromFile("c:\\Pong\\imagesBri\\reduccionTabla.png"))
         {
             cout << "Error al cargar textura para SMALLER_OPPONENT" << endl;
         }
@@ -626,7 +661,7 @@ public:
         {
             cout << "Error al cargar textura para SLOW_BALL" << endl;
         }
-        if (!powerUpTextures[DOUBLE_BALL].loadFromFile("c:\\Pong\\images\\doble.png"))
+        if (!powerUpTextures[DOUBLE_BALL].loadFromFile("c:\\Pong\\imagesBri\\x2Pelota.png"))
         {
             cout << "Error al cargar textura para DOUBLE_BALL" << endl;
         }
@@ -637,6 +672,10 @@ public:
         if (!powerUpTextures[INVERT_CONTROLS].loadFromFile("c:\\Pong\\images\\doble.png"))
         {
             cout << "Error al cargar textura para INVERT_CONTROLS" << endl;
+        }
+        if (!powerUpTextures[FLASHING_BALL].loadFromFile("c:\\Pong\\images\\ball.png"))
+        {
+            cout << "Error al cargar textura para FLASHING_BALL" << endl;
         }
 
         // Configurar la ventana
@@ -846,6 +885,8 @@ private:
         // Actualizar posición de las pelotas
         for (auto &ball : balls)
         {
+            ball.updateFlashing(); // Actualizar estado de parpadeo
+
             if (!ball.isActive())
                 continue;
 
@@ -910,7 +951,8 @@ private:
         {
             balls.clear();
             Ball newBall(ballTexture);
-            newBall.reset(); // Asegurarse de que la pelota tenga una velocidad inicial
+            newBall.reset();         // Asegurarse de que la pelota tenga una velocidad inicial
+            newBall.setActive(true); // Asegurar que esté visible
             balls.push_back(newBall);
             return;
         }
@@ -964,7 +1006,7 @@ private:
         if (powerUps.size() >= 3)
             return; // Máximo 3 power-ups a la vez
 
-        PowerUpType type = static_cast<PowerUpType>(rand() % 6); // 6 tipos de power-ups
+        PowerUpType type = static_cast<PowerUpType>(rand() % 7); // 6 tipos de power-ups
         PowerUp newPowerUp(type, powerUpTextures[type]);
         powerUps.push_back(newPowerUp);
     }
@@ -1030,6 +1072,12 @@ private:
         case INVERT_CONTROLS:
             rightPaddle.setInvertedControls(true);
             break;
+        case FLASHING_BALL:
+            for (auto &ball : balls)
+            {
+                ball.startFlashing(5.0f); // 5 segundos de parpadeo
+            }
+            break;
         }
     }
 
@@ -1068,7 +1116,7 @@ private:
             // Dibujar pelotas
             for (const auto &ball : balls)
             {
-                if (ball.isActive())
+                if (ball.isActive() && ball.isVisible()) // <-- usar ambos
                 {
                     window.draw(ball.getSprite());
                 }
