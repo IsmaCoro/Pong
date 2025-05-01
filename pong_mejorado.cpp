@@ -661,7 +661,7 @@ public:
         {
             cout << "Error al cargar textura para SMALLER_OPPONENT" << endl;
         }
-        if (!powerUpTextures[SLOW_BALL].loadFromFile("c:\\Pong\\images\\doble.png"))
+        if (!powerUpTextures[SLOW_BALL].loadFromFile("c:\\Pong\\imagesBri\\pelotaLenta.png"))
         {
             cout << "Error al cargar textura para SLOW_BALL" << endl;
         }

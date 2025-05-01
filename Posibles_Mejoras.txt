@@ -4,18 +4,18 @@
 ## Power-ups Recomendados
 Para hacer el juego más dinámico y divertido:
 
-1. Paleta Más Grande : Aumenta temporalmente el tamaño de la paleta del jugador
-2. Paleta Más Pequeña : Reduce temporalmente el tamaño de la paleta del oponente
-3. Pelota Lenta : Reduce la velocidad de la pelota por unos segundos
-4. Doble Pelota : Añade una segunda pelota al juego
+--1. Paleta Más Grande : Aumenta temporalmente el tamaño de la paleta del jugador
+--2. Paleta Más Pequeña : Reduce temporalmente el tamaño de la paleta del oponente
+--3. Pelota Lenta : Reduce la velocidad de la pelota por unos segundos
+--4. Doble Pelota : Añade una segunda pelota al juego
 5. Barrera : Crea una barrera temporal en el centro que desvía la pelota
 6. Velocidad Invertida : Invierte los controles del oponente temporalmente
 7. Vision obstruida: el oponente no puede ver la pelota y la barra.
 8. Bloqueo del rival: por un corto periodo de tiempo el oponente no puede controlar su paleta
-9. Pelota fantasma: la pelota va a parpadear
+--9. Pelota fantasma: la pelota va a parpadear
 10. Apoyo: aparece una paleta extra enfrente que se controla sola
-11. Puntos dobles: Los puntos valen el doble
-12. puntos negativos: la pelota le quita un punto al oponente si logras anotar
+--11. Puntos dobles: Los puntos valen el doble
+--12. puntos negativos: la pelota le quita un punto al oponente si logras anotar
 
 ## Estructura del Menú Principal Mejorado
 Un menú principal completo con todas las opciones:
