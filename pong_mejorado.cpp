@@ -41,7 +41,8 @@ enum PowerUpType
     DOUBLE_BALL,
     BARRIER,
     INVERT_CONTROLS,
-    FLASHING_BALL
+    FLASHING_BALL,
+    DOUBLE_POINTS
 };
 
 // Clase para la pelota
@@ -594,7 +595,7 @@ private:
     // Recursos
     Texture ballTexture;
     Texture paddleTexture;
-    Texture powerUpTextures[7]; // Una textura para cada tipo de power-up
+    Texture powerUpTextures[8]; // Una textura para cada tipo de power-up
     Font font;
 
     // Elementos del juego
@@ -615,6 +616,7 @@ private:
     GameTimer *timer;
     Menu *menu;
     Clock powerUpSpawnTimer;
+    bool doublePointsActive;
 
     // Configuraciones
     GameMode gameMode;
@@ -673,9 +675,13 @@ public:
         {
             cout << "Error al cargar textura para INVERT_CONTROLS" << endl;
         }
-        if (!powerUpTextures[FLASHING_BALL].loadFromFile("c:\\Pong\\images\\ball.png"))
+        if (!powerUpTextures[FLASHING_BALL].loadFromFile("c:\\Pong\\images\\doble.png"))
         {
             cout << "Error al cargar textura para FLASHING_BALL" << endl;
+        }
+        if (!powerUpTextures[DOUBLE_POINTS].loadFromFile("c:\\Pong\\images\\ball.png"))
+        {
+            cout << "Error al cargar textura para DOUBLE_POINTS" << endl;
         }
 
         // Configurar la ventana
@@ -716,6 +722,7 @@ public:
         // Inicializar la lógica del juego
         leftScore = 0;
         rightScore = 0;
+        doublePointsActive = false;
         updateScoreDisplay();
 
         // Crear el temporizador (3 minutos por defecto)
@@ -915,9 +922,10 @@ private:
             if (pos.x < 0)
             {
                 // Gol para el jugador derecho
-                rightScore++;
+                rightScore += doublePointsActive ? 2 : 1;
                 updateScoreDisplay();
                 goalScored = true;
+                doublePointsActive = false;
 
                 // Comprobar victoria
                 if (rightScore >= maxScore)
@@ -931,9 +939,10 @@ private:
             else if (pos.x > 850)
             {
                 // Gol para el jugador izquierdo
-                leftScore++;
+                leftScore += doublePointsActive ? 2 : 1;
                 updateScoreDisplay();
                 goalScored = true;
+                doublePointsActive = false;
 
                 // Comprobar victoria
                 if (leftScore >= maxScore)
@@ -1006,7 +1015,7 @@ private:
         if (powerUps.size() >= 3)
             return; // Máximo 3 power-ups a la vez
 
-        PowerUpType type = static_cast<PowerUpType>(rand() % 7); // 6 tipos de power-ups
+        PowerUpType type = static_cast<PowerUpType>(rand() % 8); // 6 tipos de power-ups
         PowerUp newPowerUp(type, powerUpTextures[type]);
         powerUps.push_back(newPowerUp);
     }
@@ -1077,6 +1086,9 @@ private:
             {
                 ball.startFlashing(5.0f); // 5 segundos de parpadeo
             }
+            break;
+        case DOUBLE_POINTS:
+            doublePointsActive = true;
             break;
         }
     }
@@ -1173,6 +1185,7 @@ private:
         // Reiniciar puntuaciones
         leftScore = 0;
         rightScore = 0;
+        doublePointsActive = false;
         updateScoreDisplay();
 
         // Reiniciar temporizador
