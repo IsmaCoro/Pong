@@ -42,7 +42,8 @@ enum PowerUpType
     BARRIER,
     INVERT_CONTROLS,
     FLASHING_BALL,
-    DOUBLE_POINTS
+    DOUBLE_POINTS,
+    LESS_POINTS
 };
 
 // Clase para la pelota
@@ -595,7 +596,7 @@ private:
     // Recursos
     Texture ballTexture;
     Texture paddleTexture;
-    Texture powerUpTextures[8]; // Una textura para cada tipo de power-up
+    Texture powerUpTextures[9]; // Una textura para cada tipo de power-up
     Font font;
 
     // Elementos del juego
@@ -617,6 +618,7 @@ private:
     Menu *menu;
     Clock powerUpSpawnTimer;
     bool doublePointsActive;
+    bool lessPointsActive;
 
     // Configuraciones
     GameMode gameMode;
@@ -679,9 +681,13 @@ public:
         {
             cout << "Error al cargar textura para FLASHING_BALL" << endl;
         }
-        if (!powerUpTextures[DOUBLE_POINTS].loadFromFile("c:\\Pong\\images\\ball.png"))
+        if (!powerUpTextures[DOUBLE_POINTS].loadFromFile("c:\\Pong\\images\\doble.png"))
         {
             cout << "Error al cargar textura para DOUBLE_POINTS" << endl;
+        }
+        if (!powerUpTextures[LESS_POINTS].loadFromFile("c:\\Pong\\images\\ball.png"))
+        {
+            cout << "Error al cargar textura para LESS_POINTS" << endl;
         }
 
         // Configurar la ventana
@@ -723,6 +729,7 @@ public:
         leftScore = 0;
         rightScore = 0;
         doublePointsActive = false;
+        lessPointsActive = false;
         updateScoreDisplay();
 
         // Crear el temporizador (3 minutos por defecto)
@@ -922,10 +929,13 @@ private:
             if (pos.x < 0)
             {
                 // Gol para el jugador derecho
+                if (lessPointsActive)
+                    leftScore = max(0, leftScore - 1); // Quitar 1 punto al jugador que NO anotó
                 rightScore += doublePointsActive ? 2 : 1;
                 updateScoreDisplay();
                 goalScored = true;
                 doublePointsActive = false;
+                lessPointsActive = false;
 
                 // Comprobar victoria
                 if (rightScore >= maxScore)
@@ -939,10 +949,13 @@ private:
             else if (pos.x > 850)
             {
                 // Gol para el jugador izquierdo
+                if (lessPointsActive)
+                    rightScore = max(0, rightScore - 1);
                 leftScore += doublePointsActive ? 2 : 1;
                 updateScoreDisplay();
                 goalScored = true;
                 doublePointsActive = false;
+                lessPointsActive = false;
 
                 // Comprobar victoria
                 if (leftScore >= maxScore)
@@ -1015,7 +1028,15 @@ private:
         if (powerUps.size() >= 3)
             return; // Máximo 3 power-ups a la vez
 
-        PowerUpType type = static_cast<PowerUpType>(rand() % 8); // 6 tipos de power-ups
+        int typeIndex = rand() % 9; // Ahora son 9 tipos
+        PowerUpType type = static_cast<PowerUpType>(typeIndex);
+
+        // Validar que LESS_POINTS solo salga si ambos tienen al menos 1 punto
+        if (type == LESS_POINTS && (leftScore < 1 || rightScore < 1))
+        {
+            // No generar el LESS_POINTS, cambia el power-up a uno normal
+            type = static_cast<PowerUpType>(rand() % 8);
+        }
         PowerUp newPowerUp(type, powerUpTextures[type]);
         powerUps.push_back(newPowerUp);
     }
@@ -1089,6 +1110,9 @@ private:
             break;
         case DOUBLE_POINTS:
             doublePointsActive = true;
+            break;
+        case LESS_POINTS:
+            lessPointsActive = true;
             break;
         }
     }
@@ -1186,6 +1210,7 @@ private:
         leftScore = 0;
         rightScore = 0;
         doublePointsActive = false;
+        lessPointsActive = false;
         updateScoreDisplay();
 
         // Reiniciar temporizador
