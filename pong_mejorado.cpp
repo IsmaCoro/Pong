@@ -44,8 +44,8 @@ enum PowerUpType
     FLASHING_BALL,
     DOUBLE_POINTS,
     LESS_POINTS,
-    FREEZE_OPPONENT
-
+    FREEZE_OPPONENT,
+    INVISIBLE_OPPONENT
 };
 
 // Clase para la pelota
@@ -598,7 +598,7 @@ private:
     // Recursos
     Texture ballTexture;
     Texture paddleTexture;
-    Texture powerUpTextures[10]; // Una textura para cada tipo de power-up
+    Texture powerUpTextures[11]; // Una textura para cada tipo de power-up
     Font font;
 
     // Elementos del juego
@@ -610,6 +610,10 @@ private:
     bool freezeRightActive;
     Clock freezeTimerLeft;
     Clock freezeTimerRight;
+    bool invisibleLeftActive;
+    bool invisibleRightActive;
+    Clock invisibleTimerLeft;
+    Clock invisibleTimerRight;
 
     // Interfaz
     Text scoreLeft;
@@ -699,6 +703,10 @@ public:
         {
             cout << "Error al cargar textura para FREEZE_OPPONENT" << endl;
         }
+        if (!powerUpTextures[INVISIBLE_OPPONENT].loadFromFile("c:\\Pong\\imagesBri\\VisionObstruida.png"))
+        {
+            cout << "Error al cargar textura para INVISIBLE_OPPONENT" << endl;
+        }
 
         // Configurar la ventana
         window.setFramerateLimit(120);
@@ -742,6 +750,8 @@ public:
         lessPointsActive = false;
         freezeLeftActive = false;
         freezeRightActive = false;
+        invisibleLeftActive = false;
+        invisibleRightActive = false;
         updateScoreDisplay();
 
         // Crear el temporizador (3 minutos por defecto)
@@ -1009,6 +1019,15 @@ private:
         {
             freezeRightActive = false;
         }
+        // Actualizar invisibilidad
+        if (invisibleLeftActive && invisibleTimerLeft.getElapsedTime().asSeconds() > 5.0f) // por ejemplo 5 segundos
+        {
+            invisibleLeftActive = false;
+        }
+        if (invisibleRightActive && invisibleTimerRight.getElapsedTime().asSeconds() > 5.0f)
+        {
+            invisibleRightActive = false;
+        }
 
         // Controlar paleta izquierda (jugador 1 o IA)
         if (!leftPaddle.getIsAI() && !freezeLeftActive)
@@ -1055,14 +1074,14 @@ private:
         if (powerUps.size() >= 3)
             return; // Máximo 3 power-ups a la vez
 
-        int typeIndex = rand() % 10; // Ahora son 9 tipos
+        int typeIndex = rand() % 11; // Ahora son 9 tipos
         PowerUpType type = static_cast<PowerUpType>(typeIndex);
 
         // Validar que LESS_POINTS solo salga si ambos tienen al menos 1 punto
         if (type == LESS_POINTS && (leftScore < 1 || rightScore < 1))
         {
             // No generar el LESS_POINTS, cambia el power-up a uno normal
-            type = static_cast<PowerUpType>(rand() % 9);
+            type = static_cast<PowerUpType>(rand() % 10);
         }
         PowerUp newPowerUp(type, powerUpTextures[type]);
         powerUps.push_back(newPowerUp);
@@ -1156,6 +1175,21 @@ private:
                 }
             }
             break;
+        case INVISIBLE_OPPONENT:
+            if (!balls.empty())
+            {
+                if (balls[0].getVelocity().x > 0)
+                {
+                    invisibleRightActive = true;
+                    invisibleTimerLeft.restart();
+                }
+                else
+                {
+                    invisibleLeftActive = true;
+                    invisibleTimerRight.restart();
+                }
+            }
+            break;
         }
     }
 
@@ -1201,8 +1235,10 @@ private:
             }
 
             // Dibujar paletas
-            window.draw(leftPaddle.getSprite());
-            window.draw(rightPaddle.getSprite());
+            if (!invisibleLeftActive)
+                window.draw(leftPaddle.getSprite());
+            if (!invisibleRightActive)
+                window.draw(rightPaddle.getSprite());
 
             // Dibujar power-ups
             for (const auto &powerUp : powerUps)
@@ -1255,6 +1291,8 @@ private:
         lessPointsActive = false;
         freezeLeftActive = false;
         freezeRightActive = false;
+        invisibleLeftActive = false;
+        invisibleRightActive = false;
         updateScoreDisplay();
 
         // Reiniciar temporizador
@@ -1640,6 +1678,21 @@ private:
                 {
                     freezeRightActive = true;
                     freezeTimerRight.restart();
+                }
+            }
+            break;
+        case INVISIBLE_OPPONENT:
+            if (!balls.empty())
+            {
+                if (balls[0].getVelocity().x > 0)
+                {
+                    invisibleLeftActive = true;
+                    invisibleTimerLeft.restart();
+                }
+                else
+                {
+                    invisibleRightActive = true;
+                    invisibleTimerRight.restart();
                 }
             }
             break;
