@@ -1181,12 +1181,12 @@ private:
                 if (balls[0].getVelocity().x > 0)
                 {
                     invisibleRightActive = true;
-                    invisibleTimerLeft.restart();
+                    invisibleTimerRight.restart();
                 }
                 else
                 {
                     invisibleLeftActive = true;
-                    invisibleTimerRight.restart();
+                    invisibleTimerLeft.restart();
                 }
             }
             break;
