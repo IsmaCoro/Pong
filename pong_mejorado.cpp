@@ -43,7 +43,9 @@ enum PowerUpType
     INVERT_CONTROLS,
     FLASHING_BALL,
     DOUBLE_POINTS,
-    LESS_POINTS
+    LESS_POINTS,
+    FREEZE_OPPONENT
+
 };
 
 // Clase para la pelota
@@ -596,7 +598,7 @@ private:
     // Recursos
     Texture ballTexture;
     Texture paddleTexture;
-    Texture powerUpTextures[9]; // Una textura para cada tipo de power-up
+    Texture powerUpTextures[10]; // Una textura para cada tipo de power-up
     Font font;
 
     // Elementos del juego
@@ -604,6 +606,10 @@ private:
     Paddle leftPaddle = Paddle(paddleTexture, true, false, EASY);
     Paddle rightPaddle = Paddle(paddleTexture, false, true, EASY); // Inicializar con un valor por defecto
     vector<PowerUp> powerUps;
+    bool freezeLeftActive;
+    bool freezeRightActive;
+    Clock freezeTimerLeft;
+    Clock freezeTimerRight;
 
     // Interfaz
     Text scoreLeft;
@@ -632,12 +638,12 @@ public:
         srand(static_cast<unsigned int>(time(nullptr)));
 
         // Cargar recursos ANTES de crear las paletas
-        if (!ballTexture.loadFromFile("c:\\Pong\\images\\ball.png"))
+        if (!ballTexture.loadFromFile("c:\\Pong\\imagesBri\\Pelota.png"))
         {
             cout << "Error al cargar textura Bola" << endl;
         }
 
-        if (!paddleTexture.loadFromFile("c:\\Pong\\images\\paddle.png"))
+        if (!paddleTexture.loadFromFile("c:\\Pong\\imagesBri\\Paleta.png"))
         {
             cout << "Error al cargar textura Paleta" << endl;
         }
@@ -653,11 +659,11 @@ public:
 
         // Cargar texturas de power-ups (esto es un placeholder, necesitarías crear estas imágenes)
         // En una implementación real, cargarías imágenes distintas para cada power-up
-        if (!powerUpTextures[BIGGER_PADDLE].loadFromFile("c:\\Pong\\imagesBri\\aumentoTabla.png"))
+        if (!powerUpTextures[BIGGER_PADDLE].loadFromFile("c:\\Pong\\imagesBri\\PaletaMasGrande.png"))
         {
             cout << "Error al cargar textura para BIGGER_PADDLE" << endl;
         }
-        if (!powerUpTextures[SMALLER_OPPONENT].loadFromFile("c:\\Pong\\imagesBri\\reduccionTabla.png"))
+        if (!powerUpTextures[SMALLER_OPPONENT].loadFromFile("c:\\Pong\\imagesBri\\PaletaMasPequena.png"))
         {
             cout << "Error al cargar textura para SMALLER_OPPONENT" << endl;
         }
@@ -665,29 +671,33 @@ public:
         {
             cout << "Error al cargar textura para SLOW_BALL" << endl;
         }
-        if (!powerUpTextures[DOUBLE_BALL].loadFromFile("c:\\Pong\\imagesBri\\x2Pelota.png"))
+        if (!powerUpTextures[DOUBLE_BALL].loadFromFile("c:\\Pong\\imagesBri\\DoblePelota.png"))
         {
             cout << "Error al cargar textura para DOUBLE_BALL" << endl;
         }
-        if (!powerUpTextures[BARRIER].loadFromFile("c:\\Pong\\images\\doble.png"))
+        if (!powerUpTextures[BARRIER].loadFromFile("c:\\Pong\\imagesBri\\Barrera.png"))
         {
             cout << "Error al cargar textura para BARRIER" << endl;
         }
-        if (!powerUpTextures[INVERT_CONTROLS].loadFromFile("c:\\Pong\\images\\doble.png"))
+        if (!powerUpTextures[INVERT_CONTROLS].loadFromFile("c:\\Pong\\imagesBri\\CambioDeControles.png"))
         {
             cout << "Error al cargar textura para INVERT_CONTROLS" << endl;
         }
-        if (!powerUpTextures[FLASHING_BALL].loadFromFile("c:\\Pong\\images\\doble.png"))
+        if (!powerUpTextures[FLASHING_BALL].loadFromFile("c:\\Pong\\imagesBri\\PelotasFantasmas.png"))
         {
             cout << "Error al cargar textura para FLASHING_BALL" << endl;
         }
-        if (!powerUpTextures[DOUBLE_POINTS].loadFromFile("c:\\Pong\\images\\doble.png"))
+        if (!powerUpTextures[DOUBLE_POINTS].loadFromFile("c:\\Pong\\imagesBri\\PuntosDobles.png"))
         {
             cout << "Error al cargar textura para DOUBLE_POINTS" << endl;
         }
-        if (!powerUpTextures[LESS_POINTS].loadFromFile("c:\\Pong\\images\\ball.png"))
+        if (!powerUpTextures[LESS_POINTS].loadFromFile("c:\\Pong\\imagesBri\\PuntosNegativos.png"))
         {
             cout << "Error al cargar textura para LESS_POINTS" << endl;
+        }
+        if (!powerUpTextures[FREEZE_OPPONENT].loadFromFile("c:\\Pong\\imagesBri\\BloqueoPaleta.png"))
+        {
+            cout << "Error al cargar textura para FREEZE_OPPONENT" << endl;
         }
 
         // Configurar la ventana
@@ -730,6 +740,8 @@ public:
         rightScore = 0;
         doublePointsActive = false;
         lessPointsActive = false;
+        freezeLeftActive = false;
+        freezeRightActive = false;
         updateScoreDisplay();
 
         // Crear el temporizador (3 minutos por defecto)
@@ -988,36 +1000,51 @@ private:
 
     void updatePaddles()
     {
-        // Controlar paleta izquierda (jugador 1 o IA)
-        if (!leftPaddle.getIsAI())
+        // Actualizar congelamiento
+        if (freezeLeftActive && freezeTimerLeft.getElapsedTime().asSeconds() > 3.0f) // por ejemplo 3 segundos
         {
-            if (Keyboard::isKeyPressed(Keyboard::W) && leftPaddle.getSprite().getPosition().y > 0)
+            freezeLeftActive = false;
+        }
+        if (freezeRightActive && freezeTimerRight.getElapsedTime().asSeconds() > 3.0f)
+        {
+            freezeRightActive = false;
+        }
+
+        // Controlar paleta izquierda (jugador 1 o IA)
+        if (!leftPaddle.getIsAI() && !freezeLeftActive)
+        {
+            if (Keyboard::isKeyPressed(Keyboard::W))
             {
-                leftPaddle.move(-leftPaddle.getSpeed()); // Move up
+                leftPaddle.move(-leftPaddle.getSpeed());
             }
-            if (Keyboard::isKeyPressed(Keyboard::S) && leftPaddle.getSprite().getPosition().y < 500)
+            if (Keyboard::isKeyPressed(Keyboard::S))
             {
-                leftPaddle.move(leftPaddle.getSpeed()); // Move down
+                leftPaddle.move(leftPaddle.getSpeed());
             }
         }
+        else if (leftPaddle.getIsAI())
+        {
+            leftPaddle.update(balls, true);
+        }
+
         else
         {
             leftPaddle.update(balls, true);
         }
 
         // Controlar paleta derecha (jugador 2 o IA)
-        if (!rightPaddle.getIsAI())
+        if (!rightPaddle.getIsAI() && !freezeRightActive)
         {
-            if (Keyboard::isKeyPressed(Keyboard::Up) && rightPaddle.getSprite().getPosition().y > 0)
+            if (Keyboard::isKeyPressed(Keyboard::Up))
             {
-                rightPaddle.move(-rightPaddle.getSpeed()); // Move up
+                rightPaddle.move(-rightPaddle.getSpeed());
             }
-            if (Keyboard::isKeyPressed(Keyboard::Down) && rightPaddle.getSprite().getPosition().y < 500)
+            if (Keyboard::isKeyPressed(Keyboard::Down))
             {
-                rightPaddle.move(rightPaddle.getSpeed()); // Move down
+                rightPaddle.move(rightPaddle.getSpeed());
             }
         }
-        else
+        else if (rightPaddle.getIsAI())
         {
             rightPaddle.update(balls, false);
         }
@@ -1028,14 +1055,14 @@ private:
         if (powerUps.size() >= 3)
             return; // Máximo 3 power-ups a la vez
 
-        int typeIndex = rand() % 9; // Ahora son 9 tipos
+        int typeIndex = rand() % 10; // Ahora son 9 tipos
         PowerUpType type = static_cast<PowerUpType>(typeIndex);
 
         // Validar que LESS_POINTS solo salga si ambos tienen al menos 1 punto
         if (type == LESS_POINTS && (leftScore < 1 || rightScore < 1))
         {
             // No generar el LESS_POINTS, cambia el power-up a uno normal
-            type = static_cast<PowerUpType>(rand() % 8);
+            type = static_cast<PowerUpType>(rand() % 9);
         }
         PowerUp newPowerUp(type, powerUpTextures[type]);
         powerUps.push_back(newPowerUp);
@@ -1113,6 +1140,21 @@ private:
             break;
         case LESS_POINTS:
             lessPointsActive = true;
+            break;
+        case FREEZE_OPPONENT:
+            if (!balls.empty())
+            {
+                if (balls[0].getVelocity().x > 0)
+                {
+                    freezeLeftActive = true;
+                    freezeTimerLeft.restart();
+                }
+                else
+                {
+                    freezeRightActive = true;
+                    freezeTimerRight.restart();
+                }
+            }
             break;
         }
     }
@@ -1211,6 +1253,8 @@ private:
         rightScore = 0;
         doublePointsActive = false;
         lessPointsActive = false;
+        freezeLeftActive = false;
+        freezeRightActive = false;
         updateScoreDisplay();
 
         // Reiniciar temporizador
@@ -1582,6 +1626,21 @@ private:
             else
             {
                 leftPaddle.setInvertedControls(true);
+            }
+            break;
+        case FREEZE_OPPONENT:
+            if (!balls.empty())
+            {
+                if (balls[0].getVelocity().x > 0)
+                {
+                    freezeLeftActive = true;
+                    freezeTimerLeft.restart();
+                }
+                else
+                {
+                    freezeRightActive = true;
+                    freezeTimerRight.restart();
+                }
             }
             break;
         }
