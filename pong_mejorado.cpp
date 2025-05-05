@@ -260,19 +260,19 @@ public:
         switch (aiLevel)
         {
         case EASY:
-            errorChance = 0.4f;
-            speedFactor = 0.6f;
+            errorChance = 0.9f;
+            speedFactor = 0.1f;
             errorAmount = 100.0f;
             break;
         case MEDIUM:
-            errorChance = 0.2f;
-            speedFactor = 0.75f;
-            errorAmount = 50.0f;
+            errorChance = 0.8f;
+            speedFactor = 0.3f;
+            errorAmount = 80.0f;
             break;
         case HARD:
-            errorChance = 0.05f;
-            speedFactor = 0.9f;
-            errorAmount = 20.0f;
+            errorChance = 0.04f;
+            speedFactor = 0.5f;
+            errorAmount = 30.0f;
             break;
         case IMPOSSIBLE:
             errorChance = 0.0f;
@@ -598,6 +598,9 @@ class Game
 private:
     RenderWindow window;
     GameState state;
+    // En la sección private de la clase Game
+    vector<Text> pauseMenuOptions;
+    int selectedPauseOption;
 
     // Recursos
     Texture ballTexture;
@@ -761,8 +764,35 @@ public:
         pauseText.setFont(font);
         pauseText.setCharacterSize(50);
         pauseText.setString("PAUSA");
-        pauseText.setPosition(350, 200);
+        pauseText.setPosition(250, 150);
         pauseText.setFillColor(Color::White);
+
+        // En el constructor de Game, después de inicializar pauseText
+        pauseMenuOptions.clear();
+        selectedPauseOption = 0;
+
+        Text resumeOption("Continuar", font, 30);
+        resumeOption.setPosition(350, 200);
+        pauseMenuOptions.push_back(resumeOption);
+
+        Text menuOption("Volver al Menu", font, 30);
+        menuOption.setPosition(350, 250);
+        pauseMenuOptions.push_back(menuOption);
+
+        Text exitOption("Salir", font, 30);
+        exitOption.setPosition(350, 300);
+        pauseMenuOptions.push_back(exitOption);
+
+        // Centrar las opciones horizontalmente
+        for (auto &option : pauseMenuOptions)
+        {
+            FloatRect bounds = option.getLocalBounds();
+            option.setOrigin(bounds.width / 2, 0);
+            option.setPosition(425, option.getPosition().y);
+        }
+
+        // Resaltar la opción seleccionada
+        pauseMenuOptions[selectedPauseOption].setFillColor(Color::Yellow);
 
         gameOverText.setFont(font);
         gameOverText.setCharacterSize(30); // Tamaño más pequeño
@@ -850,22 +880,43 @@ private:
                     if (event.key.code == Keyboard::Escape)
                     {
                         state = PAUSED;
+                        // Resetear la selección al pausar
+                        selectedPauseOption = 0;
+                        // Actualizar colores de las opciones
+                        for (auto &option : pauseMenuOptions)
+                        {
+                            option.setFillColor(Color::White);
+                        }
+                        pauseMenuOptions[selectedPauseOption].setFillColor(Color::Yellow);
                     }
                 }
                 else if (state == PAUSED)
                 {
-                    if (event.key.code == Keyboard::Escape)
+                    switch (event.key.code)
                     {
+                    case Keyboard::Escape:
+                        // Volver al juego al presionar Escape nuevamente
                         state = PLAYING;
-                    }
-                    else if (event.key.code == Keyboard::R)
-                    {
-                        resetGame();
-                        state = PLAYING;
-                    }
-                    else if (event.key.code == Keyboard::M)
-                    {
-                        state = MENU;
+                        break;
+
+                    case Keyboard::Up:
+                        // Navegar hacia arriba en el menú
+                        pauseMenuOptions[selectedPauseOption].setFillColor(Color::White);
+                        selectedPauseOption = (selectedPauseOption - 1 + pauseMenuOptions.size()) % pauseMenuOptions.size();
+                        pauseMenuOptions[selectedPauseOption].setFillColor(Color::Yellow);
+                        break;
+
+                    case Keyboard::Down:
+                        // Navegar hacia abajo en el menú
+                        pauseMenuOptions[selectedPauseOption].setFillColor(Color::White);
+                        selectedPauseOption = (selectedPauseOption + 1) % pauseMenuOptions.size();
+                        pauseMenuOptions[selectedPauseOption].setFillColor(Color::Yellow);
+                        break;
+
+                    case Keyboard::Return:
+                        // Seleccionar opción
+                        handlePauseMenuSelection();
+                        break;
                     }
                 }
                 else if (state == GAME_OVER)
@@ -881,6 +932,24 @@ private:
                     }
                 }
             }
+        }
+    }
+
+    void handlePauseMenuSelection()
+    {
+        switch (selectedPauseOption)
+        {
+        case 0: // Continuar
+            state = PLAYING;
+            break;
+
+        case 1: // Volver al menú
+            state = MENU;
+            break;
+
+        case 2: // Salir
+            window.close();
+            break;
         }
     }
 
@@ -964,7 +1033,7 @@ private:
             {
                 freezeRightActive = false;
             }
-            
+
             if (doublePointsActive && doublePointsTimer.getElapsedTime().asSeconds() >= 5.0f)
             {
                 doublePointsActive = false;
@@ -1418,7 +1487,7 @@ private:
         }
         else
         {
-            // Dibujar la barra de separación
+            // Dibujar elementos del juego (barra superior, paletas, pelota, etc.)
             window.draw(headerBar);
 
             // Dibujar línea central
@@ -1430,7 +1499,7 @@ private:
             // Dibujar pelotas
             for (const auto &ball : balls)
             {
-                if (ball.isActive() && ball.isVisible()) // <-- usar ambos
+                if (ball.isActive() && ball.isVisible())
                 {
                     window.draw(ball.getSprite());
                 }
@@ -1444,14 +1513,9 @@ private:
 
             // Dibujar barreras si están activas
             if (barrierLeftActive)
-            {
                 window.draw(leftBarrier);
-            }
-            
             if (barrierRightActive)
-            {
                 window.draw(rightBarrier);
-            }
 
             // Dibujar power-ups
             for (const auto &powerUp : powerUps)
@@ -1462,23 +1526,52 @@ private:
                 }
             }
 
-            // Dibujar puntuación
+            // Dibujar puntuación y temporizador
             window.draw(scoreLeft);
             window.draw(scoreRight);
-
-            // Dibujar temporizador
             window.draw(timer->getDisplay());
 
-            // Si el juego está pausado, mostrar texto de pausa
+            // Menú de pausa
             if (state == PAUSED)
             {
+                // Fondo semitransparente oscuro
+                RectangleShape overlay(Vector2f(window.getSize().x, window.getSize().y));
+                overlay.setFillColor(Color(0, 0, 0, 180));
+                window.draw(overlay);
+
+                // Texto "PAUSA" centrado
+                Text pauseText("PAUSA", font, 60);
+                FloatRect pauseBounds = pauseText.getLocalBounds();
+                pauseText.setOrigin(pauseBounds.left + pauseBounds.width / 2.0f,
+                                    pauseBounds.top + pauseBounds.height / 2.0f);
+                pauseText.setPosition(850 / 2.0f, 50);
+                pauseText.setFillColor(Color::White);
                 window.draw(pauseText);
+
+                // Dibujar opciones del menú de pausa
+                for (const auto &option : pauseMenuOptions)
+                {
+                    window.draw(option);
+                }
             }
 
-            // Si el juego ha terminado, mostrar texto de fin de juego
+            // Pantalla de fin de juego
             if (state == GAME_OVER)
             {
+                RectangleShape overlay(Vector2f(window.getSize().x, window.getSize().y));
+                overlay.setFillColor(Color(0, 0, 0, 180));
+                window.draw(overlay);
+
                 window.draw(gameOverText);
+
+                // Instrucciones para continuar
+                Text instructions("Presiona R para reiniciar o M para menu", font, 14);
+                FloatRect instrBounds = instructions.getLocalBounds();
+                instructions.setOrigin(instrBounds.left + instrBounds.width / 2.0f,
+                                       instrBounds.top + instrBounds.height / 2.0f);
+                instructions.setPosition(850 / 2.0f, 50);
+                instructions.setFillColor(Color::White);
+                window.draw(instructions);
             }
         }
 
@@ -1971,7 +2064,7 @@ private:
             {
                 if (!ball.isActive())
                     continue;
-                
+
                 FloatRect ballBounds = ball.getSprite().getGlobalBounds();
                 if (ballBounds.intersects(barrierBounds))
                 {
@@ -1981,16 +2074,16 @@ private:
                     Vector2f ballPos = ball.getPosition();
                     if (ball.getVelocity().x < 0)
                     {
-                        ball.getSprite().setPosition(barrierBounds.left + barrierBounds.width + ballBounds.width/2, ballPos.y);
+                        ball.getSprite().setPosition(barrierBounds.left + barrierBounds.width + ballBounds.width / 2, ballPos.y);
                     }
                     else
                     {
-                        ball.getSprite().setPosition(barrierBounds.left - ballBounds.width/2, ballPos.y);
+                        ball.getSprite().setPosition(barrierBounds.left - ballBounds.width / 2, ballPos.y);
                     }
                 }
             }
         }
-        
+
         if (barrierRightActive)
         {
             FloatRect barrierBounds = rightBarrier.getGlobalBounds();
@@ -1998,7 +2091,7 @@ private:
             {
                 if (!ball.isActive())
                     continue;
-                    
+
                 FloatRect ballBounds = ball.getSprite().getGlobalBounds();
                 if (ballBounds.intersects(barrierBounds))
                 {
@@ -2008,11 +2101,11 @@ private:
                     Vector2f ballPos = ball.getPosition();
                     if (ball.getVelocity().x < 0)
                     {
-                        ball.getSprite().setPosition(barrierBounds.left + barrierBounds.width + ballBounds.width/2, ballPos.y);
+                        ball.getSprite().setPosition(barrierBounds.left + barrierBounds.width + ballBounds.width / 2, ballPos.y);
                     }
                     else
                     {
-                        ball.getSprite().setPosition(barrierBounds.left - ballBounds.width/2, ballPos.y);
+                        ball.getSprite().setPosition(barrierBounds.left - ballBounds.width / 2, ballPos.y);
                     }
                 }
             }
