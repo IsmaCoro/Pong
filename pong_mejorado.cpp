@@ -632,6 +632,8 @@ private:
     bool smallerRightActive;
     Clock smallerTimerLeft;
     Clock smallerTimerRight;
+    Clock doublePointsTimer;
+    Clock lessPointsTimer;
 
     // Interfaz
     Text scoreLeft;
@@ -961,6 +963,16 @@ private:
             if (freezeRightActive && freezeTimerRight.getElapsedTime().asSeconds() >= 5.0f)
             {
                 freezeRightActive = false;
+            }
+            
+            if (doublePointsActive && doublePointsTimer.getElapsedTime().asSeconds() >= 5.0f)
+            {
+                doublePointsActive = false;
+            }
+
+            if (lessPointsActive && lessPointsTimer.getElapsedTime().asSeconds() >= 5.0f)
+            {
+                lessPointsActive = false;
             }
 
             // Verificar si el efecto de barrera ha expirado
@@ -1347,25 +1359,11 @@ private:
             break;
         case DOUBLE_POINTS:
             doublePointsActive = true;
-            // Iniciar temporizador para desactivar después de 10 segundos
-            Clock doublePointsTimer;
             doublePointsTimer.restart();
-            // Desactivar después de 10 segundos
-            if (doublePointsTimer.getElapsedTime().asSeconds() > 10.0f)
-            {
-                doublePointsActive = false;
-            }
             break;
         case LESS_POINTS:
             lessPointsActive = true;
-            // Iniciar temporizador para desactivar después de 10 segundos
-            Clock lessPointsTimer;
             lessPointsTimer.restart();
-            // Desactivar después de 10 segundos
-            if (lessPointsTimer.getElapsedTime().asSeconds() > 10.0f)
-            {
-                lessPointsActive = false;
-            }
             break;
         case FREEZE_OPPONENT:
             if (isLeftPaddle)
@@ -1927,12 +1925,12 @@ private:
 
         case DOUBLE_POINTS:
             doublePointsActive = true;
-            // Necesitarías un temporizador para desactivarlo
+            doublePointsTimer.restart();
             break;
 
         case LESS_POINTS:
             lessPointsActive = true;
-            // Necesitarías un temporizador para desactivarlo
+            lessPointsTimer.restart();
             break;
 
         case FREEZE_OPPONENT:
