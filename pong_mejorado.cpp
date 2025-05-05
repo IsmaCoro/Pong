@@ -103,7 +103,7 @@ public:
 
     void reset()
     {
-        sprite.setPosition(425, 250);
+        sprite.setPosition(425, 285); // Ajustado para el nuevo área de juego
         // Velocidad inicial aleatoria
         float angle = (rand() % 60 - 30) * 3.14159f / 180.0f;
         velocity.x = baseSpeed * cos(angle);
@@ -244,12 +244,12 @@ public:
         float predictedY = ballPos.y + ballVel.y * timeToReach;
 
         // Ajustar por rebotes en las paredes
-        while (predictedY < 0 || predictedY > 500)
+        while (predictedY < 70 || predictedY > 550)
         {
-            if (predictedY < 0)
-                predictedY = -predictedY;
-            if (predictedY > 500)
-                predictedY = 1000 - predictedY;
+            if (predictedY < 70)
+                predictedY = 140 - predictedY;
+            if (predictedY > 550)
+                predictedY = 1100 - predictedY;
         }
 
         // Añadir error según el nivel de dificultad
@@ -311,10 +311,10 @@ public:
 
         // Asegurar que la paleta no salga de la pantalla
         Vector2f pos = sprite.getPosition();
-        if (pos.y < sprite.getGlobalBounds().height / 2)
-            sprite.setPosition(pos.x, sprite.getGlobalBounds().height / 2);
-        if (pos.y > 500 - sprite.getGlobalBounds().height / 2)
-            sprite.setPosition(pos.x, 500 - sprite.getGlobalBounds().height / 2);
+        if (pos.y < 70 + sprite.getGlobalBounds().height / 2)
+            sprite.setPosition(pos.x, 70 + sprite.getGlobalBounds().height / 2);
+        if (pos.y > 550 - sprite.getGlobalBounds().height / 2)
+            sprite.setPosition(pos.x, 550 - sprite.getGlobalBounds().height / 2);
     }
 
     void move(float offsetY)
@@ -326,13 +326,13 @@ public:
         Vector2f pos = sprite.getPosition();
 
         // Verificar y ajustar si la paleta se sale de los límites
-        if (pos.y < sprite.getGlobalBounds().height / 2)
+        if (pos.y < 70 + sprite.getGlobalBounds().height / 2)
         {
-            sprite.setPosition(pos.x, sprite.getGlobalBounds().height / 2);
+            sprite.setPosition(pos.x, 70 + sprite.getGlobalBounds().height / 2);
         }
-        else if (pos.y > 500 - sprite.getGlobalBounds().height / 2)
+        else if (pos.y > 550 - sprite.getGlobalBounds().height / 2)
         {
-            sprite.setPosition(pos.x, 500 - sprite.getGlobalBounds().height / 2);
+            sprite.setPosition(pos.x, 550 - sprite.getGlobalBounds().height / 2);
         }
     }
 
@@ -396,7 +396,7 @@ public:
 
         // Posición aleatoria en el campo
         float x = 100 + rand() % 650;
-        float y = 50 + rand() % 400;
+        float y = 120 + rand() % 380; // Ajustado para el nuevo área de juego
         sprite.setPosition(x, y);
 
         active = true;
@@ -438,7 +438,8 @@ public:
         totalSeconds = minutes * 60;
         display.setFont(font);
         display.setCharacterSize(30);
-        display.setPosition(400, 10);
+        display.setPosition(425, 30); // Centrado en la parte superior
+        display.setOrigin(display.getLocalBounds().width / 2, 0);
         updateDisplay();
     }
 
@@ -454,6 +455,9 @@ public:
         string timeStr = (minutes < 10 ? "0" : "") + to_string(minutes) + ":" +
                          (seconds < 10 ? "0" : "") + to_string(seconds);
         display.setString(timeStr);
+
+        // Actualizar el origen para mantenerlo centrado cuando cambia el texto
+        display.setOrigin(display.getLocalBounds().width / 2, 0);
     }
 
     bool isTimeUp()
@@ -614,12 +618,27 @@ private:
     bool invisibleRightActive;
     Clock invisibleTimerLeft;
     Clock invisibleTimerRight;
+    bool biggerLeftActive;
+    bool biggerRightActive;
+    Clock biggerTimerLeft;
+    Clock biggerTimerRight;
+    bool barrierLeftActive;
+    bool barrierRightActive;
+    Clock barrierTimerLeft;
+    Clock barrierTimerRight;
+    RectangleShape leftBarrier;
+    RectangleShape rightBarrier;
+    bool smallerLeftActive;
+    bool smallerRightActive;
+    Clock smallerTimerLeft;
+    Clock smallerTimerRight;
 
     // Interfaz
     Text scoreLeft;
     Text scoreRight;
     Text pauseText;
     Text gameOverText;
+    RectangleShape headerBar; // Barra para separar el área de puntaje del juego
 
     // Lógica del juego
     int leftScore;
@@ -636,7 +655,7 @@ private:
     bool powerUpsEnabled;
 
 public:
-    Game() : window(VideoMode(850, 500), "Pong 2.0")
+    Game() : window(VideoMode(850, 550), "Pong 2.0") // Aumentar altura para el área de puntaje
     {
         // Inicializar el generador de números aleatorios
         srand(static_cast<unsigned int>(time(nullptr)));
@@ -726,11 +745,16 @@ public:
         // Configurar el texto
         scoreLeft.setFont(font);
         scoreLeft.setCharacterSize(40);
-        scoreLeft.setPosition((850 / 2) / 2, 25);
+        scoreLeft.setPosition(200, 30); // Posición en la barra superior
 
         scoreRight.setFont(font);
         scoreRight.setCharacterSize(40);
-        scoreRight.setPosition((850 / 2) + (850 / 2) / 2, 25);
+        scoreRight.setPosition(650, 30); // Posición en la barra superior
+
+        // Crear barra de separación
+        headerBar.setSize(Vector2f(850, 70));      // Altura de la barra superior
+        headerBar.setFillColor(Color(20, 20, 20)); // Color ligeramente diferente al fondo
+        headerBar.setPosition(0, 0);
 
         pauseText.setFont(font);
         pauseText.setCharacterSize(50);
@@ -739,9 +763,13 @@ public:
         pauseText.setFillColor(Color::White);
 
         gameOverText.setFont(font);
-        gameOverText.setCharacterSize(50);
-        gameOverText.setPosition(300, 200);
+        gameOverText.setCharacterSize(30); // Tamaño más pequeño
         gameOverText.setFillColor(Color::White);
+
+        // Centrar el texto horizontalmente
+        FloatRect textBounds = gameOverText.getLocalBounds();
+        gameOverText.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top + textBounds.height / 2.0f);
+        gameOverText.setPosition(425, 275); // Centro de la pantalla
 
         // Inicializar la lógica del juego
         leftScore = 0;
@@ -752,6 +780,25 @@ public:
         freezeRightActive = false;
         invisibleLeftActive = false;
         invisibleRightActive = false;
+        biggerLeftActive = false;
+        biggerRightActive = false;
+        barrierLeftActive = false;
+        barrierRightActive = false;
+        smallerLeftActive = false;
+        smallerRightActive = false;
+
+        // Configurar las barreras
+        leftBarrier.setSize(Vector2f(10, 100));
+        leftBarrier.setFillColor(Color(255, 0, 0, 128)); // Rojo semi-transparente
+        leftBarrier.setPosition(100, 225);
+
+        rightBarrier.setSize(Vector2f(10, 100));
+        rightBarrier.setFillColor(Color(255, 0, 0, 128)); // Rojo semi-transparente
+        rightBarrier.setPosition(740, 225);
+
+        rightBarrier.setSize(Vector2f(10, 100));
+        rightBarrier.setFillColor(Color(255, 0, 0, 128)); // Rojo semi-transparente
+        rightBarrier.setPosition(740, 225);
         updateScoreDisplay();
 
         // Crear el temporizador (3 minutos por defecto)
@@ -888,12 +935,56 @@ private:
             // Actualizar temporizador
             timer->updateDisplay();
 
-            // Comprobar si el tiempo se ha acabado
-            if (timer->isTimeUp())
+            // Verificar condiciones de fin de juego
+            if (timer->isTimeUp() || leftScore >= maxScore || rightScore >= maxScore)
             {
+                // Configurar el texto de game over
+                gameOverText.setFont(font);
                 gameOverText.setString(leftScore > rightScore ? "JUGADOR 1 GANA!" : (rightScore > leftScore ? "JUGADOR 2 GANA!" : "EMPATE!"));
+                gameOverText.setCharacterSize(30); // Tamaño más pequeño
+
+                // Centrar el texto horizontalmente y verticalmente
+                FloatRect textBounds = gameOverText.getLocalBounds();
+                gameOverText.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top + textBounds.height / 2.0f);
+                gameOverText.setPosition(425, 200); // Posicionado más arriba en la pantalla
+
                 state = GAME_OVER;
                 return;
+            }
+
+            // Verificar si los efectos de power-up han expirado
+            if (freezeLeftActive && freezeTimerLeft.getElapsedTime().asSeconds() >= 5.0f)
+            {
+                freezeLeftActive = false;
+            }
+
+            if (freezeRightActive && freezeTimerRight.getElapsedTime().asSeconds() >= 5.0f)
+            {
+                freezeRightActive = false;
+            }
+
+            // Verificar si el efecto de barrera ha expirado
+            if (barrierLeftActive && barrierTimerLeft.getElapsedTime().asSeconds() >= 5.0f)
+            {
+                barrierLeftActive = false;
+            }
+
+            if (barrierRightActive && barrierTimerRight.getElapsedTime().asSeconds() >= 5.0f)
+            {
+                barrierRightActive = false;
+            }
+
+            // Verificar si el efecto de paleta más pequeña ha expirado
+            if (smallerLeftActive && smallerTimerLeft.getElapsedTime().asSeconds() >= 5.0f)
+            {
+                smallerLeftActive = false;
+                leftPaddle.resetSize();
+            }
+
+            if (smallerRightActive && smallerTimerRight.getElapsedTime().asSeconds() >= 5.0f)
+            {
+                smallerRightActive = false;
+                rightPaddle.resetSize();
             }
 
             // Actualizar pelotas
@@ -901,6 +992,9 @@ private:
 
             // Actualizar paletas
             updatePaddles();
+
+            // Manejar colisiones
+            handleCollisions();
 
             // Generar power-ups
             if (powerUpsEnabled && powerUpSpawnTimer.getElapsedTime().asSeconds() > 10)
@@ -939,10 +1033,20 @@ private:
                 ball.reverseX();
                 ball.accelerate();
             }
+            // Comprobar colisiones con las barreras
+            else if (barrierLeftActive && leftBarrier.getGlobalBounds().contains(ball.getPosition()))
+            {
+                ball.reverseX();
+            }
+            else if (barrierRightActive && rightBarrier.getGlobalBounds().contains(ball.getPosition()))
+            {
+                ball.reverseX();
+            }
 
             // Comprobar colisiones con los bordes superior e inferior
             Vector2f pos = ball.getPosition();
-            if (pos.y < 0 || pos.y > 500)
+            FloatRect ballBounds = ball.getSprite().getGlobalBounds();
+            if (pos.y < 70 + ballBounds.height / 2 || pos.y > 550 - ballBounds.height / 2)
             {
                 ball.reverseY();
             }
@@ -951,40 +1055,50 @@ private:
             if (pos.x < 0)
             {
                 // Gol para el jugador derecho
-                if (lessPointsActive)
-                    leftScore = max(0, leftScore - 1); // Quitar 1 punto al jugador que NO anotó
-                rightScore += doublePointsActive ? 2 : 1;
+                if (doublePointsActive)
+                {
+                    rightScore += 2;
+                }
+                else if (lessPointsActive)
+                {
+                    rightScore += 0; // No dar puntos
+                }
+                else
+                {
+                    rightScore++;
+                }
                 updateScoreDisplay();
                 goalScored = true;
                 doublePointsActive = false;
                 lessPointsActive = false;
+                ball.reset();
 
-                // Comprobar victoria
-                if (rightScore >= maxScore)
-                {
-                    gameOverText.setString("JUGADOR 2 GANA!");
-                    state = GAME_OVER;
-                }
+                // No necesitamos comprobar victoria aquí, se hace en update()
 
                 break; // Salir del bucle para evitar más procesamiento
             }
             else if (pos.x > 850)
             {
                 // Gol para el jugador izquierdo
-                if (lessPointsActive)
-                    rightScore = max(0, rightScore - 1);
-                leftScore += doublePointsActive ? 2 : 1;
+                if (doublePointsActive)
+                {
+                    leftScore += 2;
+                }
+                else if (lessPointsActive)
+                {
+                    leftScore += 0; // No dar puntos
+                }
+                else
+                {
+                    leftScore++;
+                }
                 updateScoreDisplay();
                 goalScored = true;
                 doublePointsActive = false;
                 lessPointsActive = false;
+                ball.reset();
 
-                // Comprobar victoria
-                if (leftScore >= maxScore)
-                {
-                    gameOverText.setString("JUGADOR 1 GANA!");
-                    state = GAME_OVER;
-                }
+                // No necesitamos comprobar victoria aquí, se hace en update()
 
                 break; // Salir del bucle para evitar más procesamiento
             }
@@ -1011,22 +1125,44 @@ private:
     void updatePaddles()
     {
         // Actualizar congelamiento
-        if (freezeLeftActive && freezeTimerLeft.getElapsedTime().asSeconds() > 3.0f) // por ejemplo 3 segundos
+        if (freezeLeftActive && freezeTimerLeft.getElapsedTime().asSeconds() > 5.0f) // 5 segundos
         {
             freezeLeftActive = false;
         }
-        if (freezeRightActive && freezeTimerRight.getElapsedTime().asSeconds() > 3.0f)
+        if (freezeRightActive && freezeTimerRight.getElapsedTime().asSeconds() > 5.0f)
         {
             freezeRightActive = false;
         }
         // Actualizar invisibilidad
-        if (invisibleLeftActive && invisibleTimerLeft.getElapsedTime().asSeconds() > 5.0f) // por ejemplo 5 segundos
+        if (invisibleLeftActive && invisibleTimerLeft.getElapsedTime().asSeconds() > 5.0f) // 5 segundos
         {
             invisibleLeftActive = false;
+            leftPaddle.getSprite().setColor(Color(255, 255, 255, 255));
         }
         if (invisibleRightActive && invisibleTimerRight.getElapsedTime().asSeconds() > 5.0f)
         {
             invisibleRightActive = false;
+            rightPaddle.getSprite().setColor(Color(255, 255, 255, 255));
+        }
+        // Actualizar efecto de paleta más grande
+        if (biggerLeftActive && biggerTimerLeft.getElapsedTime().asSeconds() > 5.0f) // 5 segundos de duración
+        {
+            biggerLeftActive = false;
+            leftPaddle.resetSize();
+        }
+        if (biggerRightActive && biggerTimerRight.getElapsedTime().asSeconds() > 5.0f)
+        {
+            biggerRightActive = false;
+            rightPaddle.resetSize();
+        }
+        // Actualizar barreras
+        if (barrierLeftActive && barrierTimerLeft.getElapsedTime().asSeconds() > 5.0f) // 5 segundos
+        {
+            barrierLeftActive = false;
+        }
+        if (barrierRightActive && barrierTimerRight.getElapsedTime().asSeconds() > 5.0f)
+        {
+            barrierRightActive = false;
         }
 
         // Controlar paleta izquierda (jugador 1 o IA)
@@ -1121,13 +1257,44 @@ private:
 
     void applyPowerUp(PowerUp &powerUp)
     {
+        bool isLeftPaddle = false;
+        if (!balls.empty() && balls[0].getVelocity().x > 0)
+        {
+            isLeftPaddle = true;
+        }
+
         switch (powerUp.getType())
         {
         case BIGGER_PADDLE:
-            leftPaddle.setSize(1.5f); // Aumentar tamaño en un 50%
+            // Determinar qué jugador recibe el power-up (el que golpeó la pelota)
+            if (isLeftPaddle)
+            {
+                leftPaddle.setSize(1.5f); // Aumentar tamaño en un 50%
+                biggerLeftActive = true;
+                biggerTimerLeft.restart();
+            }
+            else
+            {
+                rightPaddle.setSize(1.5f);
+                biggerRightActive = true;
+                biggerTimerRight.restart();
+            }
             break;
         case SMALLER_OPPONENT:
-            rightPaddle.setSize(0.7f); // Reducir tamaño en un 30%
+            if (isLeftPaddle)
+            {
+                // Si el jugador izquierdo recoge el power-up, la paleta derecha se hace más pequeña
+                rightPaddle.setSize(0.5f);
+                smallerRightActive = true;
+                smallerTimerRight.restart();
+            }
+            else
+            {
+                // Si el jugador derecho recoge el power-up, la paleta izquierda se hace más pequeña
+                leftPaddle.setSize(0.5f);
+                smallerLeftActive = true;
+                smallerTimerLeft.restart();
+            }
             break;
         case SLOW_BALL:
             for (auto &ball : balls)
@@ -1143,12 +1310,36 @@ private:
             }
             break;
         case BARRIER:
-            // Aquí iría la lógica para crear una barrera
+            // Crear una barrera para el jugador que golpeó la pelota
+            if (isLeftPaddle)
+            {
+                barrierLeftActive = true;
+                barrierTimerLeft.restart();
+                leftBarrier.setSize(Vector2f(10, 100));
+                leftBarrier.setPosition(100, 250);
+                leftBarrier.setFillColor(Color(100, 100, 255, 150));
+            }
+            else
+            {
+                barrierRightActive = true;
+                barrierTimerRight.restart();
+                rightBarrier.setSize(Vector2f(10, 100));
+                rightBarrier.setPosition(750, 250);
+                rightBarrier.setFillColor(Color(255, 100, 100, 150));
+            }
             break;
         case INVERT_CONTROLS:
-            rightPaddle.setInvertedControls(true);
+            if (isLeftPaddle)
+            {
+                rightPaddle.setInvertedControls(true);
+            }
+            else
+            {
+                leftPaddle.setInvertedControls(true);
+            }
             break;
         case FLASHING_BALL:
+            // Hacer que todas las pelotas parpadeen durante 5 segundos
             for (auto &ball : balls)
             {
                 ball.startFlashing(5.0f); // 5 segundos de parpadeo
@@ -1156,38 +1347,48 @@ private:
             break;
         case DOUBLE_POINTS:
             doublePointsActive = true;
+            // Iniciar temporizador para desactivar después de 10 segundos
+            Clock doublePointsTimer;
+            doublePointsTimer.restart();
+            // Desactivar después de 10 segundos
+            if (doublePointsTimer.getElapsedTime().asSeconds() > 10.0f)
+            {
+                doublePointsActive = false;
+            }
             break;
         case LESS_POINTS:
             lessPointsActive = true;
+            // Iniciar temporizador para desactivar después de 10 segundos
+            Clock lessPointsTimer;
+            lessPointsTimer.restart();
+            // Desactivar después de 10 segundos
+            if (lessPointsTimer.getElapsedTime().asSeconds() > 10.0f)
+            {
+                lessPointsActive = false;
+            }
             break;
         case FREEZE_OPPONENT:
-            if (!balls.empty())
+            if (isLeftPaddle)
             {
-                if (balls[0].getVelocity().x > 0)
-                {
-                    freezeLeftActive = true;
-                    freezeTimerLeft.restart();
-                }
-                else
-                {
-                    freezeRightActive = true;
-                    freezeTimerRight.restart();
-                }
+                freezeRightActive = true;
+                freezeTimerRight.restart();
+            }
+            else
+            {
+                freezeLeftActive = true;
+                freezeTimerLeft.restart();
             }
             break;
         case INVISIBLE_OPPONENT:
-            if (!balls.empty())
+            if (isLeftPaddle)
             {
-                if (balls[0].getVelocity().x > 0)
-                {
-                    invisibleRightActive = true;
-                    invisibleTimerRight.restart();
-                }
-                else
-                {
-                    invisibleLeftActive = true;
-                    invisibleTimerLeft.restart();
-                }
+                invisibleRightActive = true;
+                invisibleTimerRight.restart();
+            }
+            else
+            {
+                invisibleLeftActive = true;
+                invisibleTimerLeft.restart();
             }
             break;
         }
@@ -1219,9 +1420,12 @@ private:
         }
         else
         {
+            // Dibujar la barra de separación
+            window.draw(headerBar);
+
             // Dibujar línea central
-            RectangleShape centerLine(Vector2f(2, 500));
-            centerLine.setPosition(425, 0);
+            RectangleShape centerLine(Vector2f(2, 480));
+            centerLine.setPosition(425, 70);
             centerLine.setFillColor(Color(255, 255, 255, 100));
             window.draw(centerLine);
 
@@ -1239,6 +1443,17 @@ private:
                 window.draw(leftPaddle.getSprite());
             if (!invisibleRightActive)
                 window.draw(rightPaddle.getSprite());
+
+            // Dibujar barreras si están activas
+            if (barrierLeftActive)
+            {
+                window.draw(leftBarrier);
+            }
+            
+            if (barrierRightActive)
+            {
+                window.draw(rightBarrier);
+            }
 
             // Dibujar power-ups
             for (const auto &powerUp : powerUps)
@@ -1293,6 +1508,14 @@ private:
         freezeRightActive = false;
         invisibleLeftActive = false;
         invisibleRightActive = false;
+        biggerLeftActive = false;
+        biggerRightActive = false;
+        barrierLeftActive = false;
+        barrierRightActive = false;
+        smallerLeftActive = false;
+        smallerRightActive = false;
+        doublePointsActive = false;
+        lessPointsActive = false;
         updateScoreDisplay();
 
         // Reiniciar temporizador
@@ -1356,7 +1579,7 @@ private:
             "Dificultad IA 1: " + to_string(static_cast<int>(menu->getAILevel1())),
             "Dificultad IA 2: " + to_string(static_cast<int>(menu->getAILevel2())),
             "Duracion Partida: " + to_string(menu->getGameDuration()) + " min",
-            "Puntuacin Maxima: " + to_string(menu->getMaxScore()),
+            "Puntuacion Maxima: " + to_string(menu->getMaxScore()),
             "Power-Ups: " + string(menu->arePowerUpsEnabled() ? "Activados" : "Desactivados"),
             "Volver"};
 
@@ -1604,29 +1827,45 @@ private:
 
     void applyPowerUp(const PowerUp &powerUp)
     {
+        bool isLeftPaddle = false;
+        if (!balls.empty() && balls[0].getVelocity().x > 0)
+        {
+            isLeftPaddle = true;
+        }
+
         switch (powerUp.getType())
         {
         case BIGGER_PADDLE:
             // Determinar qué jugador recibe el power-up (el que golpeó la pelota)
-            if (balls[0].getVelocity().x > 0)
+            if (isLeftPaddle)
             {
                 leftPaddle.setSize(1.5f); // Aumentar tamaño en 50%
+                biggerLeftActive = true;
+                biggerTimerLeft.restart();
             }
             else
             {
                 rightPaddle.setSize(1.5f);
+                biggerRightActive = true;
+                biggerTimerRight.restart();
             }
             break;
 
         case SMALLER_OPPONENT:
             // Reducir el tamaño del oponente
-            if (balls[0].getVelocity().x > 0)
+            if (isLeftPaddle)
             {
-                rightPaddle.setSize(0.7f); // Reducir tamaño en 30%
+                // Si el jugador izquierdo recoge el power-up, la paleta derecha se hace más pequeña
+                rightPaddle.setSize(0.5f);
+                smallerRightActive = true;
+                smallerTimerRight.restart();
             }
             else
             {
-                leftPaddle.setSize(0.7f);
+                // Si el jugador derecho recoge el power-up, la paleta izquierda se hace más pequeña
+                leftPaddle.setSize(0.5f);
+                smallerLeftActive = true;
+                smallerTimerLeft.restart();
             }
             break;
 
@@ -1647,17 +1886,28 @@ private:
             break;
 
         case BARRIER:
-            // Implementar barrera (esto requeriría más código para dibujar y gestionar la barrera)
-            // Por ahora, simplemente hacemos algo similar a SLOW_BALL
-            for (auto &ball : balls)
+            // Crear una barrera para el jugador que golpeó la pelota
+            if (isLeftPaddle)
             {
-                ball.slowDown(0.8f);
+                barrierLeftActive = true;
+                barrierTimerLeft.restart();
+                leftBarrier.setSize(Vector2f(10, 100));
+                leftBarrier.setPosition(100, 250);
+                leftBarrier.setFillColor(Color(100, 100, 255, 150));
+            }
+            else
+            {
+                barrierRightActive = true;
+                barrierTimerRight.restart();
+                rightBarrier.setSize(Vector2f(10, 100));
+                rightBarrier.setPosition(750, 250);
+                rightBarrier.setFillColor(Color(255, 100, 100, 150));
             }
             break;
 
         case INVERT_CONTROLS:
             // Invertir controles del oponente
-            if (balls[0].getVelocity().x > 0)
+            if (isLeftPaddle)
             {
                 rightPaddle.setInvertedControls(true);
             }
@@ -1666,36 +1916,108 @@ private:
                 leftPaddle.setInvertedControls(true);
             }
             break;
+
+        case FLASHING_BALL:
+            // Hacer que todas las pelotas parpadeen durante 5 segundos
+            for (auto &ball : balls)
+            {
+                ball.startFlashing(5.0f);
+            }
+            break;
+
+        case DOUBLE_POINTS:
+            doublePointsActive = true;
+            // Necesitarías un temporizador para desactivarlo
+            break;
+
+        case LESS_POINTS:
+            lessPointsActive = true;
+            // Necesitarías un temporizador para desactivarlo
+            break;
+
         case FREEZE_OPPONENT:
-            if (!balls.empty())
+            if (isLeftPaddle)
             {
-                if (balls[0].getVelocity().x > 0)
-                {
-                    freezeLeftActive = true;
-                    freezeTimerLeft.restart();
-                }
-                else
-                {
-                    freezeRightActive = true;
-                    freezeTimerRight.restart();
-                }
+                freezeRightActive = true;
+                freezeTimerRight.restart();
+            }
+            else
+            {
+                freezeLeftActive = true;
+                freezeTimerLeft.restart();
             }
             break;
+
         case INVISIBLE_OPPONENT:
-            if (!balls.empty())
+            if (isLeftPaddle)
             {
-                if (balls[0].getVelocity().x > 0)
-                {
-                    invisibleLeftActive = true;
-                    invisibleTimerLeft.restart();
-                }
-                else
-                {
-                    invisibleRightActive = true;
-                    invisibleTimerRight.restart();
-                }
+                invisibleRightActive = true;
+                invisibleTimerRight.restart();
+            }
+            else
+            {
+                invisibleLeftActive = true;
+                invisibleTimerLeft.restart();
             }
             break;
+        }
+    }
+
+    void handleCollisions()
+    {
+        // Colisión con las barreras
+        if (barrierLeftActive)
+        {
+            FloatRect barrierBounds = leftBarrier.getGlobalBounds();
+            for (auto &ball : balls)
+            {
+                if (!ball.isActive())
+                    continue;
+                
+                FloatRect ballBounds = ball.getSprite().getGlobalBounds();
+                if (ballBounds.intersects(barrierBounds))
+                {
+                    // Invertir la dirección horizontal de la pelota
+                    ball.reverseX();
+                    // Mover la pelota fuera de la barrera para evitar colisiones múltiples
+                    Vector2f ballPos = ball.getPosition();
+                    if (ball.getVelocity().x < 0)
+                    {
+                        ball.getSprite().setPosition(barrierBounds.left + barrierBounds.width + ballBounds.width/2, ballPos.y);
+                    }
+                    else
+                    {
+                        ball.getSprite().setPosition(barrierBounds.left - ballBounds.width/2, ballPos.y);
+                    }
+                }
+            }
+        }
+        
+        if (barrierRightActive)
+        {
+            FloatRect barrierBounds = rightBarrier.getGlobalBounds();
+            for (auto &ball : balls)
+            {
+                if (!ball.isActive())
+                    continue;
+                    
+                FloatRect ballBounds = ball.getSprite().getGlobalBounds();
+                if (ballBounds.intersects(barrierBounds))
+                {
+                    // Invertir la dirección horizontal de la pelota
+                    ball.reverseX();
+                    // Mover la pelota fuera de la barrera para evitar colisiones múltiples
+                    Vector2f ballPos = ball.getPosition();
+                    if (ball.getVelocity().x < 0)
+                    {
+                        ball.getSprite().setPosition(barrierBounds.left + barrierBounds.width + ballBounds.width/2, ballPos.y);
+                    }
+                    else
+                    {
+                        ball.getSprite().setPosition(barrierBounds.left - ballBounds.width/2, ballPos.y);
+                    }
+                }
+            }
         }
     }
 };
